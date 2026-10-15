@@ -811,7 +811,7 @@ let state='home',prevState='play',mode='normal',gt=0,runT=0,overT=0,dyingT=0,sha
 let camY=-250,genY=0,lastCannon=0,runFloor=1,runCoins=0,runGems=0,runCandy=0,bankC=0,bankG=0,bankK=0,earnedC=0,revived=false,newBest=false,lastSpikeSide='L',hwAnnounced=false,dbl=false,victory=false;
 let cat=null,hz=[],coins=[],items=[],parts=[],calm=[],crane=null,elev=null,boss=null,shots=[],rockets=[];
 const floorOf=y=>Math.max(1,Math.floor(-y/FPX)+1);
-const slideSpd=()=>(32+Math.min(30,runFloor*.06))*(1-.1*save.up.glove)*(mode==='hard'?1.55:1);
+const slideSpd=()=>(50+Math.min(28,runFloor*.06))*(1-.1*save.up.glove)*(mode==='hard'?1.55:1);
 const jvy=()=>-360*(1+.03*save.up.shoes),djvy=()=>-325*(1+.03*save.up.shoes);
 const pickR=()=>11+3*save.up.magnet;
 const coinMult=()=>(mode==='hard'?1.5:1)*(1+.04*(save.pet.lv-1))*(dbl?2:1);
