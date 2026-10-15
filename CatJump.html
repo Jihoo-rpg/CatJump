@@ -175,8 +175,8 @@ button:focus-visible{outline:calc(var(--u)*1.5) solid #fff;outline-offset:var(--
 
   <div id="hud">
    <div id="modeTag" class="ol"></div>
-   <div id="hfl" class="ol">0층</div>
-   <div id="hbst" class="ol">BEST 0층</div>
+   <div id="hfl" class="ol">0m</div>
+   <div id="hbst" class="ol">BEST 0m</div>
    <button id="pauseBtn" data-act="pause" aria-label="일시정지">❚❚</button>
    <div class="hw">
     <div class="pill"><img class="ic" data-ic="c" alt=""><span id="hc">0</span></div>
@@ -247,10 +247,10 @@ button:focus-visible{outline:calc(var(--u)*1.5) solid #fff;outline-offset:var(--
   <div id="over" class="screen dim center">
    <div class="panel center">
     <div class="otitle" id="otitle">냐앙! 떨어졌다</div>
-    <div class="ofl"><span id="ofl">0</span><small>층</small></div>
+    <div class="ofl"><span id="ofl">0</span><small>m</small></div>
     <div class="newb" id="onew">🎉 신기록!</div>
     <div class="ostats">
-     <span>최고 <b id="obest">0</b>층</span>
+     <span>최고 <b id="obest">0</b>m</span>
      <span><img class="ic" data-ic="c" alt="">+<b id="oc">0</b></span>
      <span><img class="ic" data-ic="g" alt="">+<b id="og">0</b></span>
      <span id="okw"><img class="ic" data-ic="k" alt="">+<b id="ok">0</b></span>
@@ -656,7 +656,7 @@ function themeAt(fl){const b=Math.floor((Math.max(1,fl)-1)/50);
  if(isHW(fl))return THEMES[3+(Math.floor(b/3)%3)];
  if(fl<100){for(const t of THEMES)if(fl<t.to)return t;}
  return CITY_CYCLE[b%4];}
-/* ================= 하늘 구간 (170층부터) ================= */
+/* ================= 하늘 구간 (170m부터) ================= */
 const SKY_FROM=170,ROOF_SEG=Math.floor(SKY_FROM*FPX/SEG);
 const SKY_T={type:'sky',hw:0,stars:0};
 const SKY_STOPS=[[170,'#b8e4ff'],[300,'#7ec8ff'],[400,'#5aaef4'],[440,'#ffc89a'],[560,'#ff9ab8'],[650,'#c870b0'],[720,'#2a1650'],[900,'#08061c']];
@@ -862,7 +862,7 @@ let state='home',prevState='play',mode='normal',gt=0,runT=0,overT=0,dyingT=0,sha
 let camY=-250,genY=0,lastCannon=0,runFloor=1,runCoins=0,runGems=0,runCandy=0,bankC=0,bankG=0,bankK=0,earnedC=0,revived=false,newBest=false,lastSpikeSide='L',hwAnnounced=false,dbl=false,victory=false;
 let cat=null,hz=[],coins=[],items=[],parts=[],calm=[],crane=null,elev=null,boss=null,shots=[],rockets=[];
 const floorOf=y=>Math.max(1,Math.floor(-y/FPX)+1);
-const slideSpd=()=>(50+Math.min(20,runFloor*.025))*(1-.1*save.up.glove)*(mode==='hard'?1.55:1);
+const slideSpd=()=>(48+Math.min(34,runFloor*.034))*(1-.1*save.up.glove)*(mode==='hard'?1.55:1);
 const jvy=()=>-360*(1+.03*save.up.shoes),djvy=()=>-325*(1+.03*save.up.shoes);
 const pickR=()=>11+3*save.up.magnet;
 const coinMult=()=>(mode==='hard'?1.5:1)*(1+.04*(save.pet.lv-1))*(dbl?2:1);
@@ -887,14 +887,14 @@ function candyPattern(y){const n=2+(gr()*3|0),x0=grnd(40,140-n*12);for(let k=0;k
 let wallD=[],midD=[];
 function wallFree(side,y1,y2){return!wallD.some(d=>d.side!==side&&d.y1<y2+70&&d.y2>y1-70)&&!midD.some(m=>m.y>y1-35&&m.y<y2+35);}
 function midFree(y){return!midD.some(m=>Math.abs(m.y-y)<80)&&!wallD.some(d=>y>d.y1-35&&y<d.y2+35);}
-const isHardZone=fl=>mode!=='boss'&&mode!=='versus'&&fl>=100&&(fl%100)<15;
+const isHardZone=fl=>false;
 function genChunk(y0){
  const yT=y0-CH,ym=y0-CH/2,fl=-ym/FPX,hw=isHW(fl),hard=isHardZone(fl);
- let d=clamp(fl/900,0,1);if(mode==='hard')d=Math.min(1.25,d+.35);if(hard)d=Math.min(1.3,d+.4);
+ let d=clamp(fl/750,0,1)+clamp((fl-750)/1500,0,.3);if(mode==='hard')d=Math.min(1.25,d+.35);if(hard)d=Math.min(1.3,d+.4);
  const calmHere=calm.some(([a,b])=>yT<b&&y0>a);
  if(y0>-560||calmHere){coinPattern(y0-20);if(hw)candyPattern(y0-70);return;}
  if(mode==='boss'){coinPattern(y0-20);if(fl>8&&gr()<.35){const sd=gr()<.5?'L':'R';if(gr()<.5){if(wallFree(sd,ym-24,ym+24)){hz.push({type:'spikes',side:sd,y1:ym-24,y2:ym+24});wallD.push({side:sd,y1:ym-24,y2:ym+24});}}else hz.push({type:'snow',side:sd,y1:ym-40,y2:ym+40});}return;}
- const opts=[['saw',2.5],['spikes',3],['coins',hard?.15:Math.max(1.3,3-d*1.7)]];
+ const opts=[['saw',2.5],['spikes',3],['coins',hard?.15:Math.max(.9,3.2-d*2.2)]];
  if(fl>35)opts.push(['snow',hard?.6:1.6]);
  if(fl>300)opts.push(['laser',.7+.8*d]);
  if(fl>50||hard)opts.push(['bird',.9+d]);
@@ -1045,10 +1045,10 @@ function updatePlay(dt){
  if(c.mode==='launch')camY=c.y-H*.45;
  else{const tgt=c.y-H*.58;if(tgt<camY)camY+=(tgt-camY)*Math.min(1,dt*13);}
  const f=floorOf(c.y);if(f>runFloor)runFloor=f;
- {const hz2=isHardZone(runFloor);if(hz2&&!hardIn){hardIn=true;const z=$('zone');z.innerHTML='⚠️ 어려운 구간!<br><span style="font-size:55%">15층 버티면 보석 2개</span>';z.style.display='block';zoneT=2.4;sfx('zone');}
+ {const hz2=isHardZone(runFloor);if(hz2&&!hardIn){hardIn=true;const z=$('zone');z.innerHTML='⚠️ 어려운 구간!<br><span style="font-size:55%">15m 버티면 보석 2개</span>';z.style.display='block';zoneT=2.4;sfx('zone');}
   else if(!hz2&&hardIn&&runFloor%100>=15){hardIn=false;const k=Math.floor(runFloor/100);if(!hardDone[k]){hardDone[k]=1;runGems+=2;const z=$('zone');z.innerHTML='🎉 통과! 💎+2';z.style.display='block';zoneT=1.8;sfx('gem');}}}
  {const inH=isHW(runFloor);if(inH!==hwAnnounced&&mode!=='boss'){hwAnnounced=inH;const z=$('zone');
-  if(inH){save.stats.hw=1;z.innerHTML='🎃 할로윈 구간!<br><span style="font-size:60%">50층 동안 사탕이 나와요</span>';zoneT=2.6;sfx('zone');}
+  if(inH){save.stats.hw=1;z.innerHTML='🎃 할로윈 구간!<br><span style="font-size:60%">50m 동안 사탕이 나와요</span>';zoneT=2.6;sfx('zone');}
   else{z.textContent='🏙️ 도시로 돌아왔어요';zoneT=1.8;}z.style.display='block';}}
  generate();cleanup();
  if(c.mode!=='dead'&&c.y-camY>H+26)die(true);
@@ -1261,7 +1261,7 @@ async function loadRank(){
   if(!s.docs.length){$('rankBox').innerHTML='<div class="note">아직 아무도 기록이 없어요. 첫 번째 주인공이 되어 보세요!</div>';return;}
   let html='';s.docs.forEach((d,i)=>{const v=d.data()||{},best=Math.max(0,Math.floor(Number(v.best)||0)),nick=typeof v.nick==='string'?v.nick.slice(0,10):'냥이',
    b=BREED[v.breed]?v.breed:'cheese',o=OUTFIT[v.outfit]?v.outfit:'none',me=d.id===UID;
-   html+='<div class="rk'+(me?' me':'')+'"><span class="no">'+(i<3?['🥇','🥈','🥉'][i]:i+1)+'</span><img src="'+headURL(b,o)+'" alt=""><span class="nn">'+esc(nick)+(me?' (나)':'')+'</span><b>'+fmt(best)+'층</b></div>';});
+   html+='<div class="rk'+(me?' me':'')+'"><span class="no">'+(i<3?['🥇','🥈','🥉'][i]:i+1)+'</span><img src="'+headURL(b,o)+'" alt=""><span class="nn">'+esc(nick)+(me?' (나)':'')+'</span><b>'+fmt(best)+'m</b></div>';});
   $('rankBox').innerHTML=html;
  }catch(e){if($('rankBox'))$('rankBox').innerHTML='<div class="note">랭킹을 불러오지 못했어요. 잠시 후 다시 열어 주세요.</div>';}
 }
@@ -1272,7 +1272,7 @@ function show(id){screens.forEach(s=>$(s).classList.toggle('on',s===id||(id==='m
  $('hud').classList.toggle('on',['ready','play','elevator','dying','paused','spect','vscount','count'].includes(state));}
 let hudF=-1,hudC=-1,hudG=-1,hudK=-1;
 function updHud(){
- if(runFloor!==hudF){hudF=runFloor;$('hfl').textContent=fmt(runFloor)+'층';}
+ if(runFloor!==hudF){hudF=runFloor;$('hfl').textContent=fmt(runFloor)+'m';}
  const tc=save.coins+Math.round((runCoins-bankC)*coinMult()),tg=save.gems+runGems-bankG,tk=save.candy+runCandy-bankK;
  if(tc!==hudC){hudC=tc;$('hc').textContent=fmt(tc);}if(tg!==hudG){hudG=tg;$('hg').textContent=fmt(tg);}
  if(tk!==hudK){hudK=tk;$('hk').textContent=fmt(tk);}
@@ -1286,9 +1286,9 @@ const ATT=[{c:100},{c:150},{g:2},{c:200},{g:3},{c:300},{g:10,k:20}];
 const GIFT_MS=3*3600*1000;
 const MISSIONS=[
  {id:'j1',t:'첫 점프',s:'jumps',n:1,r:{c:50}},{id:'j300',t:'점프 300번',s:'jumps',n:300,r:{c:200}},
- {id:'d100',t:'더블 점프 100번',s:'dj',n:100,r:{g:3}},{id:'f50',t:'50층 도달',s:'best',n:50,r:{c:150}},
- {id:'f100',t:'100층 도달',s:'best',n:100,r:{g:5}},{id:'f250',t:'250층 도달',s:'best',n:250,r:{c:500}},
- {id:'f500',t:'500층 도달',s:'best',n:500,r:{g:15}},{id:'c1k',t:'코인 누적 1,000개',s:'coins',n:1000,r:{g:3}},
+ {id:'d100',t:'더블 점프 100번',s:'dj',n:100,r:{g:3}},{id:'f50',t:'50m 도달',s:'best',n:50,r:{c:150}},
+ {id:'f100',t:'100m 도달',s:'best',n:100,r:{g:5}},{id:'f250',t:'250m 도달',s:'best',n:250,r:{c:500}},
+ {id:'f500',t:'500m 도달',s:'best',n:500,r:{g:15}},{id:'c1k',t:'코인 누적 1,000개',s:'coins',n:1000,r:{g:3}},
  {id:'k100',t:'사탕 누적 100개',s:'candy',n:100,r:{g:5}},{id:'b1',t:'보스 1번 처치',s:'boss',n:1,r:{g:5}},
  {id:'r10',t:'10판 플레이',s:'runs',n:10,r:{c:150}}];
 const statVal=s=>s==='best'?save.best:(save.stats[s]||0);
@@ -1329,7 +1329,7 @@ const PANELS={
   '<div class="li"><span class="em">🗑️</span><div class="tx"><b>데이터 초기화</b><small>코인·스킨·기록이 모두 지워져요</small></div><button class="gb sm '+(resetArm?'pink':'cream')+'" data-act="reset">'+(resetArm?'정말 지우기':'초기화')+'</button></div>'];},
  profile(){const S=save.stats;return['프로필',heroHTML()+'<div class="li"><span class="em">🔐</span><div class="tx"><b>'+(typeof session!=='undefined'&&session?esc(session.id)+' 로그인됨':'게스트로 하는 중')+'</b><small>로그인하면 다른 기기에서도 이어서 할 수 있어요</small></div><button class="gb sm blue" data-open="account">'+(typeof session!=='undefined'&&session?'계정':'로그인')+'</button></div>'+
   '<div class="li"><span class="em">✏️</span><div class="tx"><b>닉네임 (랭킹에 표시)</b><input class="inp" id="nickIn" maxlength="10" placeholder="이름없는 냥이" value="'+esc(save.nick)+'"></div><button class="gb sm green" data-act="nick">저장</button></div>'+
-  '<div class="li"><span class="em">📊</span><div class="tx"><b>기록</b><small>최고 '+fmt(save.best)+'층 · 점프 '+fmt(S.jumps)+'번 · 더블 점프 '+fmt(S.dj)+'번 · 플레이 '+fmt(S.runs)+'판 · 보스 처치 '+fmt(S.boss)+'번 · 모은 사탕 '+fmt(S.candy)+'개</small></div></div>'];},
+  '<div class="li"><span class="em">📊</span><div class="tx"><b>기록</b><small>최고 '+fmt(save.best)+'m · 점프 '+fmt(S.jumps)+'번 · 더블 점프 '+fmt(S.dj)+'번 · 플레이 '+fmt(S.runs)+'판 · 보스 처치 '+fmt(S.boss)+'번 · 모은 사탕 '+fmt(S.candy)+'개</small></div></div>'];},
  attend(){const can=save.attendDate!==today();let h='<div class="cal">';ATT.forEach((r,i)=>{const got=i<save.attendDay,td=i===save.attendDay&&can;h+='<div class="d'+(got?' got':'')+(td?' today':'')+'"><span>'+(i+1)+'일차</span><span class="e">'+(got?'✅':r.g>=10?'🎁':r.g?'💎':'🪙')+'</span><span>'+rewardText(r)+'</span></div>';});
   h+='</div><button class="gb green big" data-act="attend"'+(can?'':' disabled')+'>'+(can?'오늘 출석하기':'내일 또 와요')+'</button><div class="note">7일을 채우면 다시 1일차부터 시작해요.</div>';return['출석 체크',h];},
  shop(){const L=[['g5','💎','보석 5개',ICH('c')+'1,000'],['g12','💎','보석 12개',ICH('c')+'2,200'],['sh','🛡️','시작 보호막 (보유 '+save.items.shield+')',ICH('c')+'150'],['dbl','✨','다음 판 코인 2배'+(save.doubleNext?' (적용 대기 중)':''),ICH('g')+'3'],['k10','🍬','사탕 10개',ICH('g')+'5'],['c1500','🪙','코인 1,500개',ICH('g')+'10']];
@@ -1354,17 +1354,17 @@ const PANELS={
   '<div class="row"><button class="gb" data-act="feed"'+(max?' disabled':'')+'>🐟 생선 주기 '+ICH('c')+'80</button><button class="gb pink" data-act="petpat">💗 쓰다듬기</button></div>'+
   '<div class="note">레벨이 오를 때마다 게임에서 얻는 코인이 4%씩 늘어나요. (최대 10레벨)</div>'];},
  modes(){const hwOk=true,hardOk=save.best>=50;return['모드 선택',
-  '<div class="li"><span class="em">🏙️</span><div class="tx"><b>일반 모드</b><small>1층 땅에서 출발해 끝없이 올라가요</small></div><button class="gb sm green" data-act="mode" data-arg="normal">시작</button></div>'+
-  '<div class="li'+(hwOk?'':' locked')+'"><span class="em">🎃</span><div class="tx"><b>할로윈 모드</b><small>'+(hwOk?'1층부터 끝까지 할로윈 · 사탕이 나오는 유일한 모드':'100층에 도달하면 열려요')+'</small></div><button class="gb sm orange" data-act="mode" data-arg="halloween"'+(hwOk?'':' disabled')+'>시작</button></div>'+
-  '<div class="li'+(hardOk?'':' locked')+'"><span class="em">🔥</span><div class="tx"><b>하드 모드</b><small>'+(hardOk?'빨리 미끄러지고 함정이 많아요 · 코인 1.5배':'50층에 도달하면 열려요')+'</small></div><button class="gb sm pink" data-act="mode" data-arg="hard"'+(hardOk?'':' disabled')+'>시작</button></div>'+
+  '<div class="li"><span class="em">🏙️</span><div class="tx"><b>일반 모드</b><small>땅에서 출발해 끝없이 올라가요</small></div><button class="gb sm green" data-act="mode" data-arg="normal">시작</button></div>'+
+  '<div class="li'+(hwOk?'':' locked')+'"><span class="em">🎃</span><div class="tx"><b>할로윈 모드</b><small>'+(hwOk?'처음부터 끝까지 할로윈 · 사탕이 나오는 유일한 모드':'100m에 도달하면 열려요')+'</small></div><button class="gb sm orange" data-act="mode" data-arg="halloween"'+(hwOk?'':' disabled')+'>시작</button></div>'+
+  '<div class="li'+(hardOk?'':' locked')+'"><span class="em">🔥</span><div class="tx"><b>하드 모드</b><small>'+(hardOk?'빨리 미끄러지고 함정이 많아요 · 코인 1.5배':'50m에 도달하면 열려요')+'</small></div><button class="gb sm pink" data-act="mode" data-arg="hard"'+(hardOk?'':' disabled')+'>시작</button></div>'+
   '<div class="li"><span class="em">👹</span><div class="tx"><b>보스전</b><small>보스 메뉴에서 도전할 수 있어요</small></div><button class="gb sm purple" data-open="boss">이동</button></div>'];},
  boss(){return['보스전',BOSSES.map((b,i)=>{const open=i===0||save.bossClear[i-1],clr=save.bossClear[i];
   return '<div class="li'+(open?'':' locked')+'"><img src="'+bossURL(b.id)+'" alt="" style="width:calc(var(--u)*30);height:calc(var(--u)*30);image-rendering:pixelated"><div class="tx"><b>'+(i+1)+'단계 · '+b.name+(clr?' ✅':'')+'</b><small>'+b.desc+' · 체력 '+b.hp+'<br>보상 '+rewardText({c:b.reward[0],g:b.reward[1]})+(clr?'':' (첫 클리어 2배)')+'</small></div><button class="gb sm purple" data-act="boss" data-arg="'+i+'"'+(open?'':' disabled')+'>'+(open?'도전':'🔒')+'</button></div>';}).join('')+
   '<div class="note">보스가 떨어뜨리는 공격을 피하면서 반짝이는 황금 생선을 먹으면 생선 미사일이 보스에게 날아가요.</div>'];},
- online(){setTimeout(loadRank,0);return['🌐 온라인 랭킹',heroHTML()+'<div class="li"><span class="em">🏆</span><div class="tx"><b>내 최고 기록 '+fmt(save.best)+'층</b><small>닉네임: '+esc(save.nick||'이름없는 냥이')+' (프로필에서 변경)</small></div></div><div class="panel" style="padding:calc(var(--u)*2)" id="rankBox"><div class="note">랭킹 불러오는 중…</div></div>'];},
+ online(){setTimeout(loadRank,0);return['🌐 온라인 랭킹',heroHTML()+'<div class="li"><span class="em">🏆</span><div class="tx"><b>내 최고 기록 '+fmt(save.best)+'m</b><small>닉네임: '+esc(save.nick||'이름없는 냥이')+' (프로필에서 변경)</small></div></div><div class="panel" style="padding:calc(var(--u)*2)" id="rankBox"><div class="note">랭킹 불러오는 중…</div></div>'];},
  cats(){return['고양이',heroHTML()+'<div class="grid">'+BREEDS.map(b=>cardHTML('b',b)).join('')+'</div>'];},
  wardrobe(){return['옷장 · 직업 스킨',heroHTML()+'<div class="grid">'+OUTFITS.map(o=>cardHTML('o',o)).join('')+'</div><div class="note">한정 스킨은 할로윈 사탕으로 살 수 있어요.</div>'];},
- elevator(){const row=(f)=>{const p=ELEV[f];return '<div class="li"><span class="em">🧺</span><div class="tx"><b>'+f+'층 직행</b><small>학이 바구니에 태워 '+f+'층까지 날아가요</small></div><div style="display:flex;flex-direction:column;gap:calc(var(--u)*1.5)"><button class="gb sm" data-act="elev" data-arg="'+f+':c"'+(save.coins<p.c?' disabled':'')+'>'+ICH('c')+fmt(p.c)+'</button><button class="gb sm blue" data-act="elev" data-arg="'+f+':g"'+(save.gems<p.g?' disabled':'')+'>'+ICH('g')+p.g+'</button></div></div>';};
+ elevator(){const row=(f)=>{const p=ELEV[f];return '<div class="li"><span class="em">🧺</span><div class="tx"><b>'+f+'m 직행</b><small>학이 바구니에 태워 '+f+'m까지 날아가요</small></div><div style="display:flex;flex-direction:column;gap:calc(var(--u)*1.5)"><button class="gb sm" data-act="elev" data-arg="'+f+':c"'+(save.coins<p.c?' disabled':'')+'>'+ICH('c')+fmt(p.c)+'</button><button class="gb sm blue" data-act="elev" data-arg="'+f+':g"'+(save.gems<p.g?' disabled':'')+'>'+ICH('g')+p.g+'</button></div></div>';};
   return['학 엘리베이터','<div class="note">높이 올라갈수록 비싸요. 도착하면 바로 벽으로 뛰어내려요.</div>'+row(250)+row(400)];}
 };
 const bossU=new Map();
@@ -1376,7 +1376,7 @@ function spend(cur,n){const k=cur==='c'?'coins':cur==='g'?'gems':'candy';if(save
 const ELEV={250:{c:500,g:5},400:{c:1000,g:10}};
 
 /* ================= 게임 흐름 ================= */
-function enterHud(){hudF=hudC=hudG=hudK=-1;show(null);$('hbst').textContent='BEST '+fmt(save.best)+'층';
+function enterHud(){hudF=hudC=hudG=hudK=-1;show(null);$('hbst').textContent='BEST '+fmt(save.best)+'m';
  $('modeTag').textContent={normal:'',hard:'🔥 하드 모드',halloween:'🎃 할로윈 모드',boss:'👹 보스전'}[mode]||'';
  $('bossbar').style.display=boss?'block':'none';if(boss)$('bossnm').textContent=boss.def.name;$('zone').style.display='none';updHud();}
 function startGame(m){curPanel=null;
@@ -1391,7 +1391,7 @@ function startElevator(f,cur,m){
  genY=elev.ty+110;calm.push([elev.ty-240,elev.ty+200]);lastCannon=elev.ty;
  crane={x:-30,y:camY-20,vx:0,vy:0,leaving:false};
  state='elevator';save.stats.runs++;enterHud();
- const m2=$('elevMsg');m2.textContent='🧺 학이 '+f+'층까지 데려다줘요!';m2.style.display='block';
+ const m2=$('elevMsg');m2.textContent='🧺 학이 '+f+'m까지 데려다줘요!';m2.style.display='block';
  sfx('elev');
 }
 function bank(){const dc=runCoins-bankC,dg=runGems-bankG,dk=runCandy-bankK,e=Math.round(dc*coinMult());
@@ -1547,7 +1547,7 @@ function vsTick(dt){
  v.dgx+=(v.gx-v.dgx)*Math.min(1,dt*14);v.dgy+=(v.gy-v.dgy)*Math.min(1,dt*14);
  if(state==='spect'){updHazards(dt);runT+=dt;const tgt=v.dgy-H*.58;camY+=(tgt-camY)*Math.min(1,dt*4);generate();}
  const tl=Math.max(0,Math.ceil(v.t)),mm=Math.floor(tl/60),ss=String(tl%60).padStart(2,'0');
- $('modeTag').textContent='⚔️ '+(v.opp?String(v.opp.presence.nick||'상대').slice(0,8):'상대')+' '+fmt(v.oppMax)+'층 · ⏱ '+mm+':'+ss;
+ $('modeTag').textContent='⚔️ '+(v.opp?String(v.opp.presence.nick||'상대').slice(0,8):'상대')+' '+fmt(v.oppMax)+'m · ⏱ '+mm+':'+ss;
  if(v.t<=0||(v.myDead&&v.oppDead)||v.oppLeft)vsEnd();
 }
 function vsMeDead(){const v=VS;if(!v){showOver(false);return;}v.myDead=true;vsSend(true);state='spect';
@@ -1558,7 +1558,7 @@ function vsEnd(){
  const rw=win?150:draw?80:40;bank();save.coins+=rw;earnedC+=rw;save.stats.vs=(save.stats.vs||0)+1;if(win)save.stats.vsWin=(save.stats.vsWin||0)+1;persist();
  state='over';overT=0;$('zone').style.display='none';$('hint').style.display='none';
  $('otitle').textContent=v.oppLeft?'🏆 상대가 나가서 승리!':win?'🏆 승리!':draw?'🤝 무승부':'😿 아쉽게 졌어요';
- $('ofl').textContent=fmt(me);$('obest').textContent=fmt(op)+'층(상대)';$('oc').textContent=fmt(earnedC);$('og').textContent=fmt(runGems);$('ok').textContent=fmt(runCandy);
+ $('ofl').textContent=fmt(me);$('obest').textContent=fmt(op)+'m(상대)';$('oc').textContent=fmt(earnedC);$('og').textContent=fmt(runGems);$('ok').textContent=fmt(runCandy);
  $('okw').style.display=runCandy>0?'inline-flex':'none';$('onew').style.display=newBest?'block':'none';$('revBtn').style.display='none';
  const rb=document.querySelector('#over [data-act="retry"]');if(rb)rb.textContent='다시 대결';
  show('over');sfx(win?'buy':'die');submitScore();
@@ -1584,24 +1584,24 @@ PANELS.online=function(){
  let h='';
  if(onlineTab==='rank'){setTimeout(loadRank,0);
   const live=lobbyPeersList.slice().sort((a,b)=>(Number(b.presence.best)||0)-(Number(a.presence.best)||0));
-  h='<div class="li"><span class="em">🏆</span><div class="tx"><b>내 최고 기록 '+fmt(save.best)+'층</b><small>닉네임: '+esc(save.nick||'이름없는 냥이')+' (프로필에서 변경)</small></div></div>'+
+  h='<div class="li"><span class="em">🏆</span><div class="tx"><b>내 최고 기록 '+fmt(save.best)+'m</b><small>닉네임: '+esc(save.nick||'이름없는 냥이')+' (프로필에서 변경)</small></div></div>'+
    '<div class="note">전체 랭킹 (가장 높이 올라간 순)</div><div class="panel" style="padding:calc(var(--u)*2)" id="rankBox"><div class="note">랭킹 불러오는 중…</div></div>'+
-   (live.length?'<div class="note">지금 접속 중 '+live.length+'명</div><div class="panel" style="padding:calc(var(--u)*2)">'+live.map(p=>'<div class="rk"><span class="no">🟢</span><img src="'+headURL(safeB(p.presence.breed),safeO(p.presence.outfit))+'" alt=""><span class="nn">'+pNick(p)+'</span><b>'+fmt(Number(p.presence.best)||0)+'층</b></div>').join('')+'</div>':'');}
+   (live.length?'<div class="note">지금 접속 중 '+live.length+'명</div><div class="panel" style="padding:calc(var(--u)*2)">'+live.map(p=>'<div class="rk"><span class="no">🟢</span><img src="'+headURL(safeB(p.presence.breed),safeO(p.presence.outfit))+'" alt=""><span class="nn">'+pNick(p)+'</span><b>'+fmt(Number(p.presence.best)||0)+'m</b></div>').join('')+'</div>':'');}
  else if(onlineTab==='friend'){
   const online=new Set(lobbyPeersList.map(p=>p.presence.fc));
   const fr=save.friends.slice().sort((a,b)=>(online.has(b.code)-online.has(a.code))||((b.best||0)-(a.best||0)));
   h='<div class="li"><span class="em">🪪</span><div class="tx"><b>내 친구 코드 <span class="big-n" style="color:#8a5ad8">'+save.fcode+'</span></b><small>친구에게 알려주면 나를 추가할 수 있어요</small></div></div>'+
    '<div class="li"><span class="em">➕</span><div class="tx"><input class="inp" id="fcIn" maxlength="6" placeholder="친구 코드 6자리" autocapitalize="characters"></div><button class="gb sm green" data-act="fadd">추가</button></div>'+
    '<div class="note">친구 '+fr.length+'명 · 친구 랭킹</div>'+
-   (fr.length?fr.map((f,i)=>{const on=online.has(f.code);return '<div class="li"><span class="em">'+(on?'🟢':'⚪')+'</span><div class="tx"><b>'+(i+1)+'. '+esc(f.nick||'친구')+'</b><small>최고 '+fmt(f.best||0)+'층 · 코드 '+esc(f.code)+(on?' · 접속 중':'')+'</small></div>'+(on?'<button class="gb sm purple" data-act="finv" data-arg="'+esc(f.code)+'">⚔️ 대결</button>':'')+'<button class="gb sm cream" data-act="fdel" data-arg="'+esc(f.code)+'">✕</button></div>';}).join(''):'<div class="note" style="text-align:center">아직 친구가 없어요. 코드를 입력하거나 아래 접속 중인 사람을 추가해 보세요.</div>')+
-   (lobbyPeersList.filter(p=>!save.friends.some(f=>f.code===p.presence.fc)&&p.presence.fc!==save.fcode).length?'<div class="note">지금 접속 중인 사람</div>'+lobbyPeersList.filter(p=>!save.friends.some(f=>f.code===p.presence.fc)&&p.presence.fc!==save.fcode).map(p=>'<div class="li"><img src="'+headURL(safeB(p.presence.breed),safeO(p.presence.outfit))+'" alt="" style="width:calc(var(--u)*18);height:calc(var(--u)*18);image-rendering:pixelated"><div class="tx"><b>'+pNick(p)+'</b><small>최고 '+fmt(Number(p.presence.best)||0)+'층</small></div><button class="gb sm green" data-act="fadd2" data-arg="'+esc(p.presence.fc)+'">친구 추가</button></div>').join(''):'');}
+   (fr.length?fr.map((f,i)=>{const on=online.has(f.code);return '<div class="li"><span class="em">'+(on?'🟢':'⚪')+'</span><div class="tx"><b>'+(i+1)+'. '+esc(f.nick||'친구')+'</b><small>최고 '+fmt(f.best||0)+'m · 코드 '+esc(f.code)+(on?' · 접속 중':'')+'</small></div>'+(on?'<button class="gb sm purple" data-act="finv" data-arg="'+esc(f.code)+'">⚔️ 대결</button>':'')+'<button class="gb sm cream" data-act="fdel" data-arg="'+esc(f.code)+'">✕</button></div>';}).join(''):'<div class="note" style="text-align:center">아직 친구가 없어요. 코드를 입력하거나 아래 접속 중인 사람을 추가해 보세요.</div>')+
+   (lobbyPeersList.filter(p=>!save.friends.some(f=>f.code===p.presence.fc)&&p.presence.fc!==save.fcode).length?'<div class="note">지금 접속 중인 사람</div>'+lobbyPeersList.filter(p=>!save.friends.some(f=>f.code===p.presence.fc)&&p.presence.fc!==save.fcode).map(p=>'<div class="li"><img src="'+headURL(safeB(p.presence.breed),safeO(p.presence.outfit))+'" alt="" style="width:calc(var(--u)*18);height:calc(var(--u)*18);image-rendering:pixelated"><div class="tx"><b>'+pNick(p)+'</b><small>최고 '+fmt(Number(p.presence.best)||0)+'m</small></div><button class="gb sm green" data-act="fadd2" data-arg="'+esc(p.presence.fc)+'">친구 추가</button></div>').join(''):'');}
  else{
   if(invPending&&!VS)h+='<div class="li" style="background:#ffe08a"><span class="em">⚔️</span><div class="tx"><b>'+esc(invPending.nick)+'님의 대결 신청!</b><small>수락하면 1:1 대결방에 들어가요</small></div><button class="gb sm green" data-act="iacc">수락</button><button class="gb sm cream" data-act="idec">거절</button></div>';
   if(VS){const v=VS,o=v.opp,orb=o&&o.presence.rdy;
    const slot=(img,nm,sub,rdy)=>'<div class="card" style="flex:1">'+'<img class="cs" src="'+img+'" alt=""><div class="n">'+nm+'</div><div class="p">'+sub+'</div><div class="p" style="color:'+(rdy?'#2a9a2a':'#a87a5a')+'">'+(rdy?'✅ 준비 완료':'⏳ 준비 중')+'</div></div>';
    h+='<div class="li"><span class="em">🚪</span><div class="tx"><b>'+(v.kind==='random'?'랜덤 매치':v.kind==='friend'?'친구 대결':'방 코드 <span class="big-n" style="color:#8a5ad8">'+esc(v.code)+'</span>')+'</b><small>'+(v.kind==='code'?'친구에게 이 코드를 알려주세요':'')+(o?'상대가 들어왔어요!':'상대를 기다리는 중…')+'</small></div></div>'+
-    '<div class="row">'+slot(catURL('sit',0,save.breed,save.outfit),esc(save.nick||'나'),'최고 '+fmt(save.best)+'층',v.rdy)+'<div class="big-n" style="align-self:center">VS</div>'+
-    (o?slot(catURL('sit',0,safeB(o.presence.breed),safeO(o.presence.outfit)),pNick(o),'최고 '+fmt(Number(o.presence.best)||0)+'층',orb):'<div class="card" style="flex:1;justify-content:center"><div class="big-n">❔</div><div class="n">빈 자리</div></div>')+'</div>'+
+    '<div class="row">'+slot(catURL('sit',0,save.breed,save.outfit),esc(save.nick||'나'),'최고 '+fmt(save.best)+'m',v.rdy)+'<div class="big-n" style="align-self:center">VS</div>'+
+    (o?slot(catURL('sit',0,safeB(o.presence.breed),safeO(o.presence.outfit)),pNick(o),'최고 '+fmt(Number(o.presence.best)||0)+'m',orb):'<div class="card" style="flex:1;justify-content:center"><div class="big-n">❔</div><div class="n">빈 자리</div></div>')+'</div>'+
     '<button class="gb big '+(v.rdy?'cream':'green')+'" data-act="vsready"'+(o?'':' disabled')+'>'+(v.rdy?'준비 취소':'준비!')+'</button>'+
     '<button class="gb pink" data-act="vsleave">방 나가기</button><div class="note">둘 다 준비하면 3초 뒤 시작해요. '+MATCH_T+'초 동안 더 높이 올라간 사람이 이겨요. 둘 다 같은 맵에서 뛰고, 상대는 반투명 고양이로 보여요. 이기면 '+ICH('c')+'150!</div>';}
   else{const me=ROOM&&ROOM.peers().find(p=>p.sameTab),queued=!!qT;
