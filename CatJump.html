@@ -648,7 +648,14 @@ const THEMES=[
  {to:250,sky:'#6a2e7a',con:['#5a3c58','#74506e','#3e283e'],bri:['#6a3a3a','#8a5a52','#46262a'],gla:['#3a2a4a','#5a3a6a','#8a5a9a'],fr:'#8a6a7a',glass:'#2a1a34',gl2:'#5a3a6a',lit:.4,litc:'#ffa83a',led:['#7a5a6e','#2a1828'],stars:1,hw:1,moon:'#ffe4a0',aw:[['#ff8a1a','#2a1a2a'],['#9a4ad8','#2a1a2a']]},
  {to:450,sky:'#1c1236',con:['#3a3050','#4e4468','#241c34'],bri:['#40283a','#5c4054','#281824'],gla:['#262040','#2c2850','#4a4080'],fr:'#5a5078',glass:'#141024',gl2:'#2a2448',lit:.45,litc:'#9aff6a',led:['#5a5078','#140e20'],stars:1,hw:2,moon:'#d8ffb0',aw:[['#7ad04a','#1a1424'],['#ff8a1a','#1a1424']]},
  {to:1e9,sky:'#081a22',con:['#1e3a40','#2c5058','#10242a'],bri:['#243a3a','#365252','#142424'],gla:['#14282e','#1a3a44','#3a7a8a'],fr:'#3a6a70',glass:'#0a1a20',gl2:'#1a3a44',lit:.5,litc:'#6affe0',led:['#3a6a70','#081418'],stars:2,hw:3,moon:'#c0fff0',aw:[['#3affc0','#0a1a20'],['#ff8a1a','#0a1a20']]}];
-function themeAt(fl){for(const t of THEMES)if(fl<t.to)return t;return THEMES[THEMES.length-1];}
+const NIGHT_CITY={to:0,sky:'#1a2050',con:['#4a5070','#5c6488','#30364e'],bri:['#5a3a3a','#7a5450','#3a2424'],gla:['#2c3654','#2a3a6a','#4a5a9a'],fr:'#6a7090',glass:'#1a2240',gl2:'#2c3a66',lit:.4,litc:'#ffd86a',led:['#6a7090','#1a1e30'],stars:1,hw:0,aw:[['#e04848','#fff2e0'],['#3a7ad8','#fff2e0']]};
+const CITY_CYCLE=[THEMES[0],THEMES[1],THEMES[2],NIGHT_CITY];
+let zoneMode='normal';
+function isHW(fl){if(zoneMode==='halloween')return fl>=1;const b=Math.floor((fl-1)/50);return b>=2&&b%3===2;}
+function themeAt(fl){const b=Math.floor((Math.max(1,fl)-1)/50);
+ if(isHW(fl))return THEMES[3+(Math.floor(b/3)%3)];
+ if(fl<100){for(const t of THEMES)if(fl<t.to)return t;}
+ return CITY_CYCLE[b%4];}
 const segC=new Map();
 function getSeg(i){let c=segC.get(i);if(c)return c;c=mk(148,SEG);{const g2=c.getContext('2d');drawSeg(g2,i);const T=themeAt(i*SEG/FPX);g2.fillStyle=T.hw?'rgba(36,24,52,0.62)':'rgba(92,98,122,0.62)';g2.fillRect(0,0,148,SEG);}segC.set(i,c);if(segC.size>40)segC.delete(segC.keys().next().value);return c;}
 function pumpkinAt(P,cx,cy,s,lit){const r=s;for(let y=-r;y<=r;y++)for(let x=-r-1;x<=r+1;x++){const d=Math.hypot(x/(1.2),y);if(d<=r)P(cx+x,cy+y,1,1,d>r-.9?'#5a2008':(Math.abs(x)%3===0?'#d8640e':'#ff8a1a'));}
@@ -817,7 +824,7 @@ const pickR=()=>11+3*save.up.magnet;
 const coinMult=()=>(mode==='hard'?1.5:1)*(1+.04*(save.pet.lv-1))*(dbl?2:1);
 let gr=Math.random;const grnd=(a,b)=>a+gr()*(b-a);
 function resetRun(m,seed){
- mode=m||'normal';gr=seed!=null?mulberry(seed):Math.random;hz=[];coins=[];items=[];parts=[];calm=[];shots=[];rockets=[];boss=null;victory=false;
+ mode=m||'normal';const zm=mode==='halloween'?'halloween':'normal';if(zm!==zoneMode){zoneMode=zm;segC.clear();}gr=seed!=null?mulberry(seed):Math.random;hz=[];coins=[];items=[];parts=[];calm=[];shots=[];rockets=[];boss=null;victory=false;
  runCoins=0;runGems=0;runCandy=0;bankC=0;bankG=0;bankK=0;earnedC=0;revived=false;newBest=false;runT=0;shake=0;hwAnnounced=false;zoneT=0;
  cat={x:MX,y:GROUND_Y,vx:0,vy:0,mode:'ground',side:null,face:1,at:0,inv:0,buf:0,shield:false,snow:false,spin:0,spinT:0,dj:true,ct:0,can:null,ty:0,land:0};
  camY=-(H-70);genY=-70;lastCannon=0;runFloor=1;crane=null;elev=null;lastSpikeSide='L';
@@ -832,7 +839,7 @@ function coinArc(y,dir){let x=dir>0?LX+CLING:RX-CLING,yy=y,vy=-360;const vx=dir*
 function coinPattern(y){if(gr()<.45)coinCol(gr()<.5?'L':'R',y,3+(gr()*3|0));else coinArc(y,gr()<.5?1:-1);}
 function candyPattern(y){const n=2+(gr()*3|0),x0=grnd(40,140-n*12);for(let k=0;k<n;k++)items.push({type:'candy',x:x0+k*13,y:y-Math.sin(k)*4,ph:k});}
 function genChunk(y0){
- const yT=y0-CH,ym=y0-CH/2,fl=-ym/FPX,hw=fl>=100;
+ const yT=y0-CH,ym=y0-CH/2,fl=-ym/FPX,hw=isHW(fl);
  let d=clamp(fl/500,0,1);if(mode==='hard')d=Math.min(1.25,d+.35);
  const calmHere=calm.some(([a,b])=>yT<b&&y0>a);
  if(y0>-560||calmHere){coinPattern(y0-20);if(hw)candyPattern(y0-70);return;}
@@ -983,7 +990,9 @@ function updatePlay(dt){
  if(c.mode==='launch')camY=c.y-H*.45;
  else{const tgt=c.y-H*.58;if(tgt<camY)camY+=(tgt-camY)*Math.min(1,dt*13);}
  const f=floorOf(c.y);if(f>runFloor)runFloor=f;
- if(runFloor>=100&&!hwAnnounced&&mode!=='boss'){hwAnnounced=true;zoneT=2.8;save.stats.hw=1;const z=$('zone');z.innerHTML='🎃 할로윈 구역 돌입!<br><span style="font-size:60%">사탕을 모아 한정 스킨을 사세요</span>';z.style.display='block';sfx('zone');}
+ {const inH=isHW(runFloor);if(inH!==hwAnnounced&&mode!=='boss'){hwAnnounced=inH;const z=$('zone');
+  if(inH){save.stats.hw=1;z.innerHTML='🎃 할로윈 구간!<br><span style="font-size:60%">50층 동안 사탕이 나와요</span>';zoneT=2.6;sfx('zone');}
+  else{z.textContent='🏙️ 도시로 돌아왔어요';zoneT=1.8;}z.style.display='block';}}
  generate();cleanup();
  if(c.mode!=='dead'&&c.y-camY>H+26)die(true);
  if(mode==='versus')vsTick(dt);
@@ -1039,7 +1048,7 @@ function drawGround(cy){
  px(RX-22,gy-26,19,26,'#141820');px(RX-21,gy-25,17,25,'#4a5464');px(RX-23,gy-28,23,4,'#5a6474');
 }
 function drawWalls(cy){const t0=Math.floor(cy/48);
- for(let i=t0;i*48<cy+H;i++){const y=i*48,sy=sn(y-cy),hw=floorOf(y)>=100,set=hw?WALLS.h:WALLS.c;
+ for(let i=t0;i*48<cy+H;i++){const y=i*48,sy=sn(y-cy),hw=isHW(floorOf(y)),set=hw?WALLS.h:WALLS.c;
   ctx.drawImage(set[0],0,sy);ctx.drawImage(set[1],RX,sy);
   const h=((i*2654435761)>>>0)%7;
   if(false){const x=h===0?3:RX+3,py=sy+16;px(x-1,py-1,12,16,'#1a1418');px(x,py,10,14,hw?'#ff9a3a':'#f4ecdc');px(x,py,10,4,hw?'#6a2a8a':'#e04848');
@@ -1052,7 +1061,7 @@ function drawSnow(h,cy){
  for(let k=0;k<3;k++)px(x0+1+k*2,y2,1,2+(k%2)*2,'#cfeaff');
  for(let y=y1+5;y<y2;y+=11)px(x0+2+((y*3)&3),y,1,1,'#ffffff');
 }
-function drawSpikes(h,cy){const n=Math.max(1,Math.floor((h.y2-h.y1)/10));const img=h.side==='L'?SPIKE:SPIKEF,x=h.side==='L'?LX-2:RX-13;for(let k=0;k<=n;k++){const y=sn(h.y1+k*(h.y2-h.y1)/n-cy)-7;ctx.drawImage(img,x,y,15,14);}}
+function drawSpikes(h,cy){const n=Math.max(1,Math.floor((h.y2-h.y1)/10));const img=h.side==='L'?SPIKE:SPIKEF,x=h.side==='L'?LX-2:RX-9;for(let k=0;k<=n;k++){const y=sn(h.y1+k*(h.y2-h.y1)/n-cy)-5;ctx.drawImage(img,x,y);}}
 function drawLaser(h,cy){
  const y=sn(h.y-cy),st=laserState(h),w=RX-LX-6,bl=((runT*12)|0)%2;
  if(st==='off'){ctx.fillStyle='rgba(255,80,100,.35)';for(let x=LX+4;x<RX-4;x+=6)ctx.fillRect(x,y,3,1);}
@@ -1064,10 +1073,10 @@ function drawLaser(h,cy){
 }
 function drawMarks(cy){
  const fTop=floorOf(cy),fBot=floorOf(cy+H);
- for(let f=Math.max(50,Math.ceil(fBot/50)*50);f<=fTop+1;f+=50){
+ for(let f=Math.max(50,Math.ceil(fBot/50)*50);f<=fTop+1;f+=50){if(f%50)continue;
   const y=sn(-(f-1)*FPX-cy),s=String(f),w=s.length*4+3;
-  ctx.fillStyle=f===100?'rgba(255,150,40,.55)':'rgba(255,255,255,.22)';ctx.fillRect(LX,y,148,1);
-  px(1,y-5,w,11,'#2a1a14');px(2,y-4,w-2,9,f===100?'#ff9a2a':'#ffcc22');drawTxt(s,3,y-2,'#2a1a14');}
+  const zs=!isHW(f-1)&&isHW(f);ctx.fillStyle=zs?'rgba(255,150,40,.55)':'rgba(255,255,255,.22)';ctx.fillRect(LX,y,148,1);
+  px(1,y-5,w,11,'#2a1a14');px(2,y-4,w-2,9,zs?'#ff9a2a':'#ffcc22');drawTxt(s,3,y-2,'#2a1a14');}
  if(save.best>1){const y=sn(-(save.best-1)*FPX-cy);if(y>-10&&y<H+10){ctx.fillStyle='#ffe14a';for(let x=LX;x<RX;x+=6)ctx.fillRect(x,y,3,1);px(RX-21,y-8,19,8,'#2a1a14');drawTxt('BEST',RX-20,y-7,'#ffe14a');}}
 }
 function drawCatState(){
@@ -1097,9 +1106,9 @@ function render(){
  const a=Math.max(0,Math.floor(-(cy+H)/SEG)),b=Math.ceil(-cy/SEG);
  for(let i=a;i<=b;i++)ctx.drawImage(getSeg(i),LX,-(i+1)*SEG-cy);
  drawGround(cy);
- px(LX,0,148,H,floorOf(cy+H/2)>=100?'rgba(10,0,20,0.18)':'rgba(20,20,40,0.14)');
- for(const h of hz)if(h.type==='saw')glow(sn(h.x),sn(h.y-cy),22);
- for(const h of hz)if(h.type==='saw'){const f=Math.floor(((h.rot%(Math.PI/4))+Math.PI/4)%(Math.PI/4)/(Math.PI/4)*6)%6;ctx.drawImage(SAW[f],sn(h.x)-19,sn(h.y-cy)-19,39,39);}
+ px(LX,0,148,H,isHW(floorOf(cy+H/2))?'rgba(10,0,20,0.18)':'rgba(20,20,40,0.14)');
+ for(const h of hz)if(h.type==='saw')glow(sn(h.x),sn(h.y-cy),24);
+ for(const h of hz)if(h.type==='saw'){const f=Math.floor(((h.rot%(Math.PI/4))+Math.PI/4)%(Math.PI/4)/(Math.PI/4)*6)%6;ctx.drawImage(SAW[f],sn(h.x)-14,sn(h.y-cy)-14);}
  drawWalls(cy);
  for(const h of hz){if(h.type==='snow')drawSnow(h,cy);else if(h.type==='spikes'){const a=.3+.18*Math.sin(gt*8),yy=sn(h.y1-cy)-6,hh=sn(h.y2-h.y1)+12;px(h.side==='L'?LX:RX-16,yy,16,hh,'rgba(255,40,70,'+a+')');px(h.side==='L'?LX+15:RX-16,yy,1,hh,'rgba(255,140,150,'+(a+.3)+')');drawSpikes(h,cy);}}
  drawMarks(cy);
@@ -1111,11 +1120,11 @@ function render(){
   else if(o.type==='orb'){const rr=8+sn(Math.sin(gt*6));for(let k=0;k<20;k++){const t=k/20*Math.PI*2+gt;px(X+sn(Math.cos(t)*rr),Y+sn(Math.sin(t)*rr),1,1,k%2?'#ffe14a':'#ffffff');}ctx.drawImage(FISH,X-6,Y-3);}
   else{ctx.drawImage(SHIELD_I,X-6,Y-6);px(X-1,Y,3,1,'#ffffff');px(X,Y-1,1,3,'#ffffff');}}
  for(const h of hz){
-  if(h.type==='bird'||h.type==='bat')glow(sn(h.x),sn(h.y-cy),15);else if(h.type==='ghost')glow(sn(h.x),sn(h.y-cy),15);else if(h.type==='cannon')glow(sn(h.x),sn(h.y-cy),12,true);
+  if(h.type==='bird'||h.type==='bat')glow(sn(h.x),sn(h.y-cy),19);else if(h.type==='ghost')glow(sn(h.x),sn(h.y-cy),19);else if(h.type==='cannon')glow(sn(h.x),sn(h.y-cy),12,true);
   if(h.type==='cannon'){const j=h.shake>0?sn(rnd(-1,1)):0;ctx.drawImage(CANNON,sn(h.x)-6+j,sn(h.y-cy)-6);}
-  else if(h.type==='bird'){const f=((h.fa*8)|0)%2;ctx.drawImage(h.dir<0?BIRDF[f]:BIRD[f],sn(h.x)-10,sn(h.y-cy)-7,21,14);}
-  else if(h.type==='bat'){const f=((h.fa*9)|0)%2;ctx.drawImage(BAT[f],sn(h.x)-12,sn(h.y-cy)-7,24,13);}
-  else if(h.type==='ghost'){ctx.globalAlpha=.7+Math.sin(runT*5+h.ph)*.2;const flip=Math.cos(runT*h.sp+h.ph)<0;ctx.save();ctx.translate(sn(h.x),sn(h.y-cy));if(flip)ctx.scale(-1,1);ctx.drawImage(GHOST,-10,-10,21,21);ctx.restore();ctx.globalAlpha=1;}}
+  else if(h.type==='bird'){const f=((h.fa*8)|0)%2;ctx.drawImage(h.dir<0?BIRDF[f]:BIRD[f],sn(h.x)-6,sn(h.y-cy)-4);}
+  else if(h.type==='bat'){const f=((h.fa*9)|0)%2;ctx.drawImage(BAT[f],sn(h.x)-7,sn(h.y-cy)-4);}
+  else if(h.type==='ghost'){ctx.globalAlpha=.7+Math.sin(runT*5+h.ph)*.2;const flip=Math.cos(runT*h.sp+h.ph)<0;ctx.save();ctx.translate(sn(h.x),sn(h.y-cy));if(flip)ctx.scale(-1,1);ctx.drawImage(GHOST,-7,-7);ctx.restore();ctx.globalAlpha=1;}}
  if(boss){const b=boss,img=bossSprite(b.def.id,((gt*6)|0)%2);
   if(!b.dead||((gt*20)|0)%2){ctx.save();if(b.flash>0)ctx.globalAlpha=.55;ctx.drawImage(img,sn(b.x)-44,sn(b.y-cy)-46);ctx.restore();}
   if(b.def.id==='rat'&&!b.dead)for(let k=0;k<2;k++)parts.push({x:b.x+rnd(-12,12),y:b.y+24,vx:rnd(-8,8),vy:rnd(40,80),life:.25,max:.25,col:Math.random()<.5?'#ffb04a':'#ffe14a',sz:2,g:0});
@@ -1210,7 +1219,7 @@ function updHud(){
  const tc=save.coins+Math.round((runCoins-bankC)*coinMult()),tg=save.gems+runGems-bankG,tk=save.candy+runCandy-bankK;
  if(tc!==hudC){hudC=tc;$('hc').textContent=fmt(tc);}if(tg!==hudG){hudG=tg;$('hg').textContent=fmt(tg);}
  if(tk!==hudK){hudK=tk;$('hk').textContent=fmt(tk);}
- $('hcandyP').style.display=(runFloor>=100||mode==='halloween'||runCandy>0)?'flex':'none';
+ $('hcandyP').style.display=(isHW(runFloor)||mode==='halloween'||runCandy>0)?'flex':'none';
  if(boss)$('bossfill').style.width=(boss.hp/boss.max*100)+'%';
 }
 function refreshWallet(){document.querySelectorAll('.wc').forEach(e=>e.textContent=fmt(save.coins));document.querySelectorAll('.wg').forEach(e=>e.textContent=fmt(save.gems));document.querySelectorAll('.wk').forEach(e=>e.textContent=fmt(save.candy));}
@@ -1249,7 +1258,7 @@ function cardHTML(kind,it){
 function heroHTML(){const b=BREED[save.breed],o=OUTFIT[save.outfit];return '<div class="hero"><img src="'+catURL('sit',0,save.breed,save.outfit)+'" alt=""><div><div class="nm">'+b.name+(o.id!=='none'?' · '+o.name:'')+'</div><div class="ds">'+b.desc+'</div></div></div>';}
 const PANELS={
  notice(){save.noticeSeen=1;persist();return['공지사항',
-  '<div class="li"><span class="em">🎃</span><div class="tx"><b>할로윈 업데이트</b><small>100층부터 할로윈 구역이 시작돼요. 사탕을 모아 한정 스킨을 사 보세요.</small></div></div>'+
+  '<div class="li"><span class="em">🎃</span><div class="tx"><b>할로윈 업데이트</b><small>100~150층, 250~300층처럼 가끔 50층짜리 할로윈 구간이 나와요. 사탕을 모아 한정 스킨을 사 보세요.</small></div></div>'+
   '<div class="li"><span class="em">🐾</span><div class="tx"><b>더블 점프</b><small>공중에서 한 번 더 누르면 빙글 돌며 한 번 더 뛰어요.</small></div></div>'+
   '<div class="li"><span class="em">🧱</span><div class="tx"><b>벽 미끄러짐</b><small>벽에 매달려 가만히 있으면 천천히 미끄러져 내려가요. 화면 아래로 떨어지면 끝!</small></div></div>'+
   '<div class="li"><span class="em">👹</span><div class="tx"><b>보스전 3종</b><small>떨어지는 공격을 피하며 황금 생선을 먹으면 보스에게 발사돼요.</small></div></div>'+
@@ -1277,7 +1286,7 @@ const PANELS={
   return['무료 선물','<div class="capsule" style="background:linear-gradient(#ff7a7a 50%,#ffd23f 50%)">🎁</div><div class="note" style="text-align:center">3시간마다 '+ICH('c')+'60을 받을 수 있어요. 가끔 보석도 들어 있어요!</div>'+
   '<button class="gb green big" data-act="gift"'+(ok?'':' disabled')+'>'+(ok?'선물 열기':(h>0?h+'시간 ':'')+m+'분 뒤에 열 수 있어요')+'</button>'];},
  event(){const L=OUTFITS.filter(o=>o.limited);return['🎃 할로윈 사탕 이벤트',
-  '<div class="li" style="background:#3a1a4a;color:#fff"><span class="em">🍬</span><div class="tx"><b>보유 사탕 '+fmt(save.candy)+'개</b><small style="color:#e8c8ff">100층부터 시작되는 할로윈 구역에서 사탕이 나와요. 할로윈 모드에서는 사탕이 2배!</small></div></div>'+
+  '<div class="li" style="background:#3a1a4a;color:#fff"><span class="em">🍬</span><div class="tx"><b>보유 사탕 '+fmt(save.candy)+'개</b><small style="color:#e8c8ff">100~150층, 250~300층처럼 가끔 나오는 50층짜리 할로윈 구간에서 사탕이 나와요. 할로윈 모드는 처음부터 끝까지 할로윈이고 사탕이 2배!</small></div></div>'+
   '<div class="grid">'+L.map(o=>cardHTML('o',o)).join('')+'</div>'+
   '<button class="gb orange big" data-act="mode" data-arg="halloween"'+(save.stats.hw||save.best>=100?'':' disabled')+'>🎃 할로윈 모드 시작 (100층부터)</button>'+(save.stats.hw||save.best>=100?'':'<div class="note">100층에 한 번 도달하면 할로윈 모드가 열려요.</div>')];},
  smith(){return['전설의 대장장이','<div class="note">코인으로 장비를 강화하면 영구적으로 강해져요. (최대 5단계)</div>'+UPG.map(u=>{const lv=save.up[u.id],max=lv>=5;
@@ -1289,7 +1298,7 @@ const PANELS={
   '<div class="note">레벨이 오를 때마다 게임에서 얻는 코인이 4%씩 늘어나요. (최대 10레벨)</div>'];},
  modes(){const hwOk=save.stats.hw||save.best>=100,hardOk=save.best>=50;return['모드 선택',
   '<div class="li"><span class="em">🏙️</span><div class="tx"><b>일반 모드</b><small>1층 땅에서 출발해 끝없이 올라가요</small></div><button class="gb sm green" data-act="mode" data-arg="normal">시작</button></div>'+
-  '<div class="li'+(hwOk?'':' locked')+'"><span class="em">🎃</span><div class="tx"><b>할로윈 모드</b><small>'+(hwOk?'학이 100층까지 무료로 데려다줘요 · 사탕 2배':'100층에 도달하면 열려요')+'</small></div><button class="gb sm orange" data-act="mode" data-arg="halloween"'+(hwOk?'':' disabled')+'>시작</button></div>'+
+  '<div class="li'+(hwOk?'':' locked')+'"><span class="em">🎃</span><div class="tx"><b>할로윈 모드</b><small>'+(hwOk?'처음부터 끝까지 할로윈 · 학이 100층까지 무료로 데려다줘요 · 사탕 2배':'100층에 도달하면 열려요')+'</small></div><button class="gb sm orange" data-act="mode" data-arg="halloween"'+(hwOk?'':' disabled')+'>시작</button></div>'+
   '<div class="li'+(hardOk?'':' locked')+'"><span class="em">🔥</span><div class="tx"><b>하드 모드</b><small>'+(hardOk?'빨리 미끄러지고 함정이 많아요 · 코인 1.5배':'50층에 도달하면 열려요')+'</small></div><button class="gb sm pink" data-act="mode" data-arg="hard"'+(hardOk?'':' disabled')+'>시작</button></div>'+
   '<div class="li"><span class="em">👹</span><div class="tx"><b>보스전</b><small>보스 메뉴에서 도전할 수 있어요</small></div><button class="gb sm purple" data-open="boss">이동</button></div>'];},
  boss(){return['보스전',BOSSES.map((b,i)=>{const open=i===0||save.bossClear[i-1],clr=save.bossClear[i];
