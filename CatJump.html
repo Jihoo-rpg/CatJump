@@ -1644,7 +1644,7 @@ const PANELS={
  cats(){return['고양이',heroHTML()+'<div class="note">🏆 100m, 300m, 500m, 700m, 900m, 1100m, 1300m, 1500m, 1800m, 2000m에 도달하면 화려한 특별 고양이를 받아요!</div>'+'<div class="grid">'+BREEDS.map(b=>cardHTML('b',b)).join('')+'</div>'];},
  wardrobe(){return['옷장 · 직업 스킨',heroHTML()+'<div class="grid">'+OUTFITS.map(o=>cardHTML('o',o)).join('')+'</div><div class="note">한정 스킨은 할로윈 사탕으로 살 수 있어요.</div>'];},
  elevator(){const row=(f)=>{const p=ELEV[f];return '<div class="li"><span class="em">🧺</span><div class="tx"><b>'+f+'m 직행</b><small>학이 바구니에 태워 '+f+'m까지 날아가요</small></div><div style="display:flex;flex-direction:column;gap:calc(var(--u)*1.5)"><button class="gb sm" data-act="elev" data-arg="'+f+':c"'+(save.coins<p.c?' disabled':'')+'>'+ICH('c')+fmt(p.c)+'</button><button class="gb sm blue" data-act="elev" data-arg="'+f+':g"'+(save.gems<p.g?' disabled':'')+'>'+ICH('g')+p.g+'</button></div></div>';};
-  return['학 엘리베이터','<div class="note">높이 올라갈수록 비싸요. 도착하면 바로 벽으로 뛰어내려요.</div>'+row(250)+row(400)];}
+  return['학 엘리베이터','<div class="note">높이 올라갈수록 비싸요. 도착하면 바로 벽으로 뛰어내려요.</div>'+row(250)+row(400)+(save.best>=1000?'<div class="li" style="background:linear-gradient(90deg,#1a1440,#3a2a7a);color:#fff"><span class="em">🚀</span><div class="tx"><b>우주 직행 (650m)</b><small style="color:#d8c8ff">최고 기록 1000m 달성 보상! 학이 바구니에 태워 우주까지 데려다줘요</small></div><div style="display:flex;flex-direction:column;gap:calc(var(--u)*1.5)"><button class="gb sm" data-act="elev" data-arg="650:c"'+(save.coins<1500?' disabled':'')+'>'+ICH('c')+'1,500</button><button class="gb sm blue" data-act="elev" data-arg="650:g"'+(save.gems<15?' disabled':'')+'>'+ICH('g')+'15</button></div></div>':'<div class="li locked"><span class="em">🚀</span><div class="tx"><b>우주 직행 (650m) 🔒</b><small>최고 기록이 1000m를 넘으면 열려요 (지금 '+fmt(save.best)+'m)</small></div></div>')];}
 };
 const bossU=new Map();
 function bossURL(id){let u=bossU.get(id);if(!u){try{u=bossSprite(id,0).toDataURL();}catch(e){u='';}bossU.set(id,u);}return u;}
@@ -1652,7 +1652,7 @@ function openPanel(k){if(!PANELS[k])return;curPanel=k;if(k!=='settings')resetArm
 function rerender(){refreshHome();if(curPanel&&$('modal').classList.contains('on')){const top=$('mbody').scrollTop;openPanel(curPanel);$('mbody').scrollTop=top;}}
 function closeModal(){curPanel=null;show(state==='home'?'home':null);refreshHome();}
 function spend(cur,n){const k=cur==='c'?'coins':cur==='g'?'gems':'candy';if(save[k]<n){toast(cur==='c'?'코인이 부족해요':cur==='g'?'보석이 부족해요':'사탕이 부족해요');return false;}save[k]-=n;return true;}
-const ELEV={250:{c:500,g:5},400:{c:1000,g:10}};
+const ELEV={250:{c:500,g:5},400:{c:1000,g:10},650:{c:1500,g:15,need:1000}};
 
 /* ================= 게임 흐름 ================= */
 function enterHud(){hudF=hudC=hudG=hudK=-1;show(null);$('hbst').textContent='BEST '+fmt(save.best)+'m';
@@ -1663,6 +1663,7 @@ function startGame(m){curPanel=null;
 function startBoss(i){curPanel=null;resetRun('boss');const d=BOSSES[i];boss={st:i,def:d,hp:d.hp,max:d.hp,x:MX,y:0,t:0,atk:2.6,orbT:1.5,flash:0,dead:false,deadT:0,n:0};
  generate();save.stats.runs++;persist();startCount();}
 function startElevator(f,cur,m){
+ if(ELEV[f]&&ELEV[f].need&&save.best<ELEV[f].need){toast('최고 기록 '+ELEV[f].need+'m를 넘어야 열려요');return;}
  if(cur!=='free'&&!spend(cur,ELEV[f][cur]))return;
  curPanel=null;persist();resetRun(m||'normal');
  cat.mode='basket';cat.x=MX;cat.y=-18;
