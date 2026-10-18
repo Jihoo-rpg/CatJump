@@ -1571,7 +1571,7 @@ const MISSIONS=[
  {id:'k100',t:'사탕 누적 100개',s:'candy',n:100,r:{g:5}},{id:'b1',t:'보스 1번 처치',s:'boss',n:1,r:{g:5}},
  {id:'r10',t:'10판 플레이',s:'runs',n:10,r:{c:150}}];
 const statVal=s=>s==='best'?save.best:(save.stats[s]||0);
-const UPG=[{id:'glove',e:'🧤',n:'미끄럼 방지 장갑',d:'벽에서 10%씩 덜 미끄러져요'},{id:'shoes',e:'👟',n:'스프링 신발',d:'점프가 3%씩 높아져요'},{id:'magnet',e:'🧲',n:'자석 목걸이',d:'코인을 더 멀리서 먹어요'},{id:'luck',e:'🔔',n:'행운 방울',d:'보석이 더 자주 나와요'},{id:'revive',e:'🔥',n:'불사조의 깃털',d:'한 판에 부활할 수 있는 횟수 +1 (전설급)',max:2,cost:[12000,30000],gcost:[40,90],legend:1}];
+const UPG=[{id:'glove',e:'🧤',n:'미끄럼 방지 장갑',d:'벽에서 10%씩 덜 미끄러져요'},{id:'shoes',e:'👟',n:'스프링 신발',d:'점프가 3%씩 높아져요'},{id:'magnet',e:'🧲',n:'자석 목걸이',d:'코인을 더 멀리서 먹어요'},{id:'luck',e:'🔔',n:'행운 방울',d:'보석이 더 자주 나와요'},{id:'revive',e:'🔥',n:'불사조의 깃털',d:'한 판에 부활할 수 있는 횟수 +1 (전설급)',max:2,cost:[12000,30000],gcost:[150,350],legend:1}];
 const UPC=[300,600,1000,1600,2500];
 function rewardText(r){let s='';if(r.c)s+=ICH('c')+fmt(r.c)+' ';if(r.g)s+=ICH('g')+r.g+' ';if(r.k)s+=ICH('k')+r.k;return s;}
 function giveReward(r){if(r.c){save.coins+=r.c;save.stats.coins+=r.c;}if(r.g)save.gems+=r.g;if(r.k){save.candy+=r.k;}}
