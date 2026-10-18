@@ -1145,7 +1145,7 @@ function resetRun(m,seed){
  runUnlocks=[];
  wallD=[];midD=[];hardIn=false;hardDone={};
  mode=m||'normal';const zm=mode==='halloween'?'halloween':'normal';if(zm!==zoneMode){zoneMode=zm;segC.clear();}gr=seed!=null?mulberry(seed):Math.random;hz=[];coins=[];items=[];parts=[];calm=[];shots=[];rockets=[];boss=null;victory=false;
- runCoins=0;runGems=0;runCandy=0;bankC=0;bankG=0;bankK=0;earnedC=0;revived=false;newBest=false;runT=0;shake=0;hwAnnounced=false;zoneT=0;
+ runCoins=0;runGems=0;runCandy=0;bankC=0;bankG=0;bankK=0;earnedC=0;revived=0;newBest=false;runT=0;shake=0;hwAnnounced=false;zoneT=0;
  cat={x:MX,y:GROUND_Y,vx:0,vy:0,mode:'ground',side:null,face:1,at:0,inv:0,buf:0,shield:false,snow:false,spin:0,spinT:0,dj:true,ct:0,can:null,ty:0,land:0};
  camY=-(H-70);genY=-70;lastCannon=0;runFloor=1;crane=null;elev=null;lastSpikeSide='L';
  dbl=!!save.doubleNext;if(dbl){save.doubleNext=false;persist();}
@@ -1571,7 +1571,7 @@ const MISSIONS=[
  {id:'k100',t:'사탕 누적 100개',s:'candy',n:100,r:{g:5}},{id:'b1',t:'보스 1번 처치',s:'boss',n:1,r:{g:5}},
  {id:'r10',t:'10판 플레이',s:'runs',n:10,r:{c:150}}];
 const statVal=s=>s==='best'?save.best:(save.stats[s]||0);
-const UPG=[{id:'glove',e:'🧤',n:'미끄럼 방지 장갑',d:'벽에서 10%씩 덜 미끄러져요'},{id:'shoes',e:'👟',n:'스프링 신발',d:'점프가 3%씩 높아져요'},{id:'magnet',e:'🧲',n:'자석 목걸이',d:'코인을 더 멀리서 먹어요'},{id:'luck',e:'🔔',n:'행운 방울',d:'보석이 더 자주 나와요'}];
+const UPG=[{id:'glove',e:'🧤',n:'미끄럼 방지 장갑',d:'벽에서 10%씩 덜 미끄러져요'},{id:'shoes',e:'👟',n:'스프링 신발',d:'점프가 3%씩 높아져요'},{id:'magnet',e:'🧲',n:'자석 목걸이',d:'코인을 더 멀리서 먹어요'},{id:'luck',e:'🔔',n:'행운 방울',d:'보석이 더 자주 나와요'},{id:'revive',e:'🔥',n:'불사조의 깃털',d:'한 판에 부활할 수 있는 횟수 +1 (전설급)',max:2,cost:[30000,80000],legend:1}];
 const UPC=[300,600,1000,1600,2500];
 function rewardText(r){let s='';if(r.c)s+=ICH('c')+fmt(r.c)+' ';if(r.g)s+=ICH('g')+r.g+' ';if(r.k)s+=ICH('k')+r.k;return s;}
 function giveReward(r){if(r.c){save.coins+=r.c;save.stats.coins+=r.c;}if(r.g)save.gems+=r.g;if(r.k){save.candy+=r.k;}}
@@ -1626,8 +1626,8 @@ const PANELS={
   '<div class="li" style="background:#3a1a4a;color:#fff"><span class="em">🍬</span><div class="tx"><b>보유 사탕 '+fmt(save.candy)+'개</b><small style="color:#e8c8ff">사탕은 메인 화면의 할로윈 이벤트에서 시작하는 할로윈 모드에서만 나와요. 일반 모드에는 할로윈이 안 나와요.</small></div></div>'+
   '<div class="grid">'+L.map(o=>cardHTML('o',o)).join('')+'</div>'+
   '<button class="gb orange big" data-act="mode" data-arg="halloween">🎃 할로윈 모드 시작</button>'];},
- smith(){return['전설의 대장장이','<div class="note">코인으로 장비를 강화하면 영구적으로 강해져요. (최대 5단계)</div>'+UPG.map(u=>{const lv=save.up[u.id],max=lv>=5;
-  return '<div class="li"><span class="em">'+u.e+'</span><div class="tx"><b>'+u.n+' Lv.'+lv+'</b><small>'+u.d+'</small><div class="prog"><i style="width:'+lv*20+'%"></i></div></div><button class="gb sm" data-act="up" data-arg="'+u.id+'"'+(max?' disabled':'')+'>'+(max?'최대':ICH('c')+fmt(UPC[lv]))+'</button></div>';}).join('')];},
+ smith(){return['전설의 대장장이','<div class="note">코인으로 장비를 강화하면 영구적으로 강해져요. (최대 5단계)</div>'+UPG.map(u=>{const lv=save.up[u.id]||0,mx=u.max||5,max=lv>=mx,cost=(u.cost||UPC)[lv];
+  return '<div class="li"'+(u.legend?' style="background:linear-gradient(90deg,#3a1a0a,#8a3a10);color:#fff"':'')+'><span class="em">'+u.e+'</span><div class="tx"><b>'+u.n+' Lv.'+lv+'/'+mx+'</b><small'+(u.legend?' style="color:#ffd8a0"':'')+'>'+u.d+(u.id==='revive'?' · 지금 한 판에 '+(1+lv)+'번 부활':'')+'</small><div class="prog"><i style="width:'+lv/mx*100+'%"></i></div></div><button class="gb sm'+(u.legend?' orange':'')+'" data-act="up" data-arg="'+u.id+'"'+(max||save.coins<cost?' disabled':'')+'>'+(max?'최대':ICH('c')+fmt(cost))+'</button></div>';}).join('')];},
  pet(){const p=save.pet,need=p.lv*100,max=p.lv>=10;return['아기냥 키우기',
   '<div class="hero" style="background:#ffe6f0"><img src="'+catURL('sit',2,'calico','none')+'" alt="" style="width:calc(var(--u)*40);height:calc(var(--u)*40)"><div><div class="nm">'+esc(p.name)+' Lv.'+p.lv+'</div><div class="ds">코인 획득량 +'+(p.lv-1)*4+'%</div>'+
   '<div class="prog" style="width:calc(var(--u)*60)"><i style="width:'+(max?100:p.exp/need*100)+'%"></i></div><div class="ds">'+(max?'최고 레벨!':'경험치 '+p.exp+'/'+need)+'</div></div></div>'+
@@ -1684,11 +1684,11 @@ function showOver(win){
  $('otitle').textContent=win?'🏆 '+boss.def.name+' 격파!'+bonus:boss?'보스에게 졌어요…':'냐앙! 떨어졌다';
  $('ofl').textContent=fmt(runFloor);$('obest').textContent=fmt(save.best);$('oc').textContent=fmt(earnedC);$('og').textContent=fmt(runGems+(win?boss.def.reward[1]*(bonus?2:1):0));$('ok').textContent=fmt(runCandy);
  $('okw').style.display=runCandy>0?'inline-flex':'none';overBadge();
- const rb=$('revBtn');rb.disabled=revived||save.gems<3;rb.style.display=(revived||win)?'none':'flex';
+ const rb=$('revBtn'),rl=1+(save.up.revive||0)-revived;rb.disabled=rl<=0||save.gems<3;rb.style.display=(rl<=0||win)?'none':'flex';rb.innerHTML='<img class="ic" src="'+ICON.g+'" alt="">3으로 이어하기'+(rl>1?' (남은 '+rl+'번)':'');
  show('over');submitScore();
 }
 function revive(){
- if(revived||save.gems<3)return;save.gems-=3;persist();revived=true;
+ if(revived>=1+(save.up.revive||0)||save.gems<3)return;save.gems-=3;persist();revived++;
  const c=cat,ry=Math.min(c.y,camY+H*.6);c.y=ry;c.x=LX+CLING;c.mode='wall';c.side='L';c.inv=2.2;c.vx=c.vy=0;c.spin=0;c.dj=true;
  clearRange(ry-200,ry+160);calm.push([ry-220,ry+160]);shots=[];
  state='play';hudG=-1;show(null);burst(c.x,c.y,18,['#3fe0ff','#ffffff'],80,.6,20);sfx('gem');startCount();
@@ -1735,7 +1735,7 @@ const ACT={
    persist();sfx('buy');const cp=$('cap');if(cp){cp.classList.remove('spin');cp.textContent='🎉';}if($('gres'))$('gres').innerHTML=html;refreshHome();},900);},
  claim:a=>{const m=MISSIONS.find(x=>x.id===a);if(!m||save.claimed.includes(a)||statVal(m.s)<m.n)return;save.claimed.push(a);giveReward(m.r);persist();sfx('buy');toast('미션 보상을 받았어요!');rerender();},
  gift:()=>{if(Date.now()-save.giftAt<GIFT_MS)return;save.giftAt=Date.now();const g=Math.random()<.3?1:0;giveReward({c:60,g});persist();sfx('buy');toast('🪙60'+(g?' + 💎1':'')+' 받았어요!');rerender();},
- up:a=>{const lv=save.up[a];if(lv>=5||!spend('c',UPC[lv]))return;save.up[a]++;persist();sfx('buy');toast('강화 성공! Lv.'+save.up[a]);rerender();},
+ up:a=>{const u=UPG.find(x=>x.id===a),lv=save.up[a]||0,mx=u.max||5;if(lv>=mx||!spend('c',(u.cost||UPC)[lv]))return;save.up[a]=lv+1;persist();sfx('buy');toast((u.legend?'🔥 전설 강화 성공! ':'강화 성공! ')+'Lv.'+save.up[a]);rerender();},
  feed:()=>{const p=save.pet;if(p.lv>=10||!spend('c',80))return;p.exp+=25;let up=false;while(p.lv<10&&p.exp>=p.lv*100){p.exp-=p.lv*100;p.lv++;up=true;}if(p.lv>=10)p.exp=0;persist();sfx(up?'buy':'coin');toast(up?'🎉 아기냥 레벨 업! Lv.'+p.lv:'냠냠! 경험치 +25');rerender();},
  petpat:()=>{sfx('candy');toast(['골골골… 💗','기분 좋은 냥!','냐앙~ 💕','꾹꾹이 발사!'][Math.random()*4|0]);}
 };
