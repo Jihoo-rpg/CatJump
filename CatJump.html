@@ -205,7 +205,7 @@ button:focus-visible{outline:calc(var(--u)*1.5) solid #fff;outline-offset:var(--
     <div class="pill"><img class="ic" data-ic="g" alt=""><span id="hg">0</span></div>
     <div class="pill" id="hcandyP"><img class="ic" data-ic="k" alt=""><span id="hk">0</span></div>
    </div>
-   <div id="bossbar"><div class="nm ol" id="bossnm"></div><div class="bar"><i id="bossfill"></i></div></div>
+   <div id="bossbar"><div class="nm ol" id="bossnm"></div><div class="bar"><i id="bossfill"></i></div><div id="bossHp" style="font-size:calc(var(--u)*9);margin-top:calc(var(--u)*1.5);letter-spacing:calc(var(--u)*1)"></div></div>
    <div id="hint" class="ol">탭 · 클릭 · 스페이스바로 점프!<br><small>공중에서 한 번 더 누르면 더블 점프</small></div>
    <div id="zone" class="ol"></div>
    <div id="elevMsg" class="ol"></div>
@@ -1268,6 +1268,7 @@ function laserState(h){const p=((runT+h.ph)%h.per+h.per)%h.per;return p<h.per*.5
 function hit(){
  const c=cat;if(c.inv>0)return;
  if(c.shield){c.shield=false;c.inv=1.3;burst(c.x,c.y,22,['#ffe14a','#ffffff'],110,.6,40);sfx('shield');shake=.2;return;}
+ if(boss&&!boss.dead&&bossHearts>1){bossHearts--;c.inv=1.6;burst(c.x,c.y,18,['#ff5a7a','#ffffff'],90,.5,40);sfx('hit');shake=.25;vib(80);return;}
  die(false);
 }
 function die(fall){
@@ -1367,7 +1368,7 @@ function updatePlay(dt){
   if(inH){save.stats.hw=1;z.innerHTML='🎃 할로윈 모드!<br><span style="font-size:60%">사탕을 모아 한정 스킨을 사세요</span>';zoneT=2.6;sfx('zone');}
   else{z.textContent='🏙️ 도시로 돌아왔어요';zoneT=1.8;}z.style.display='block';}}
  generate();cleanup();
- if(c.mode!=='dead'&&c.y-camY>H+26)die(true);
+ if(c.mode!=='dead'&&c.y-camY>H+26){if(boss&&!boss.dead&&bossHearts>1){bossHearts--;c.y=camY+H*.55;c.x=LX+CLING;c.mode='wall';c.side='L';c.vx=0;c.vy=0;c.inv=2;sfx('hit');burst(c.x,c.y,14,['#ff5a7a','#ffffff'],80,.5,0);}else die(true);}
  if((mode==='normal'||mode==='hard')&&!portalOn&&runFloor>=1290&&runFloor<1320&&!save.breeds.includes('shifter')){portalOn=true;const py=-(1320-1)*FPX;clearRange(py-150,py+150);calm.push([py-200,py+200]);coins=coins.filter(o=>Math.abs(o.y-py)>40);hz.push({type:'portal',x:MX,y:py});}
  if(mode==='versus')vsTick(dt);
  {const br=BREED[save.breed];if(br.fx&&c.mode!=='dead')fxEmit(c.x,c.y,br,dt);if(runFloor>=2500&&!save.skillBlast&&mode!=='boss'){save.skillBlast=true;giveSkill('blast');const z=$('zone');z.innerHTML='💥 2500m 달성!<br><span style="font-size:55%">폭풍 스킬 획득! E키 또는 💥 버튼</span>';z.style.display='block';zoneT=3.5;sfx('buy');vib(100);}if(mode!=='boss'){for(const b of MS_BREEDS())if(runFloor>=b.ms&&!save.breeds.includes(b.id)){unlockMS(b);break;}}}
@@ -1614,7 +1615,7 @@ function updHud(){
  if(tc!==hudC){hudC=tc;$('hc').textContent=fmt(tc);}if(tg!==hudG){hudG=tg;$('hg').textContent=fmt(tg);}
  if(tk!==hudK){hudK=tk;$('hk').textContent=fmt(tk);}
  $('hcandyP').style.display=(isHW(runFloor)||mode==='halloween'||runCandy>0)?'flex':'none';
- if(boss)$('bossfill').style.width=(boss.hp/boss.max*100)+'%';
+ if(boss){$('bossfill').style.width=(boss.hp/boss.max*100)+'%';const hh='❤️'.repeat(Math.max(0,bossHearts))+'🖤'.repeat(Math.max(0,3-bossHearts));if($('bossHp').textContent!==hh)$('bossHp').textContent=hh;}
 }
 function refreshWallet(){document.querySelectorAll('.wc').forEach(e=>e.textContent=fmt(save.coins));document.querySelectorAll('.wg').forEach(e=>e.textContent=fmt(save.gems));document.querySelectorAll('.wk').forEach(e=>e.textContent=fmt(save.candy));}
 let toastT=null;
@@ -1721,7 +1722,7 @@ function enterHud(){hudF=hudC=hudG=hudK=-1;show(null);$('hbst').textContent='BES
  $('bossbar').style.display=boss?'block':'none';if(boss)$('bossnm').textContent=boss.def.name;$('zone').style.display='none';updHud();}
 function startGame(m){curPanel=null;
  resetRun(m);generate();save.stats.runs++;persist();startCount();}
-function startBoss(i){curPanel=null;resetRun('boss');const d=BOSSES[i];boss={st:i,def:d,hp:d.hp,max:d.hp,x:MX,y:0,t:0,atk:2.6,orbT:1.5,flash:0,dead:false,deadT:0,n:0};
+function startBoss(i){curPanel=null;resetRun('boss');bossHearts=3;const d=BOSSES[i];boss={st:i,def:d,hp:d.hp,max:d.hp,x:MX,y:0,t:0,atk:2.6,orbT:1.5,flash:0,dead:false,deadT:0,n:0};
  generate();save.stats.runs++;persist();startCount();}
 function startElevator(f,cur,m){
  if(ELEV[f]&&ELEV[f].need&&save.best<ELEV[f].need){toast('최고 기록 '+ELEV[f].need+'m를 넘어야 열려요');return;}
@@ -2227,7 +2228,7 @@ Object.assign(ZD,{
  origin:{bpm:84,root:60,sc:'lydian',prog:[0,4,5,1,0,3,4,4],bar:8,f(s,t,c){if(s%8===0){for(const m of c.ch){I.organ(mtof(m),t,c.barT,.04);I.brass(mtof(m),t,c.barT*.8,.03);}I.choir(mtof(c.ch[0]+12),t,c.barT,.06);I.bell(mtof(c.ch[0]-12),t,.07,4);drum('timp',t,1);}
   const ap=[0,1,2,1,2,0,1,2];I.pluck('sine',mtof(c.ch[ap[s%8]]+24),t,.035,8000,.35,{echo:1});if(s%8===4)drum('timp',t,0);if(s%32===0)drum('crash',t);const mel=[4,-1,6,7,-1,9,7,-1,11,-1,9,7,6,-1,4,-1];const m=mel[s%16];if(m>=0&&(s>>4)%2)I.lead('sine',mtof(c.n(m)+12),t,c.e*1.6,.05,5,5000,{echo:1});}}});
 
-let shiftB='shifter',shiftT=0,portalOn=false,portalGo=false,skillCD=0,debris=[],sring=null,skillShown='';
+let bossHearts=3,shiftB='shifter',shiftT=0,portalOn=false,portalGo=false,skillCD=0,debris=[],sring=null,skillShown='';
 const SKILLS={blast:{n:'폭풍',e:'💥',cd:12,cls:'',d:'고양이 위아래 25m 안의 장애물을 싹 날려버려요',how:'2500m 달성'},pumpkin:{n:'호박 마법',e:'🎃',cd:40,cls:'pk',d:'5초 동안 모든 장애물이 사라지고 벽이 호박으로! 끝나면 보호막',how:'할로윈 이벤트 🍬250'},
  rocket:{n:'대포 발사',e:'🚀',cd:30,cls:'rk',d:'대포처럼 50m 위로 슝 날아가고 보호막까지!',how:()=>'보스 3종 모두 처치 ('+[0,1,2].filter(i=>save.bossClear[i]).length+'/3) + 최고 기록 3500m ('+fmt(save.best)+'m)'}};
 function checkRocket(){if(!ownSkill('rocket')&&save.bossClear[0]&&save.bossClear[1]&&save.bossClear[2]&&save.best>=3500){giveSkill('rocket');setTimeout(()=>{toast('🚀 전설 스킬 대포 발사 획득! 옷장 → 스킬');sfx('buy');},500);}}
