@@ -586,7 +586,7 @@ function unlockMS(b){save.breeds.push(b.id);persist();runUnlocks.push(b.name);
  const z=$('zone');z.innerHTML='🎉 '+b.ms+'m 달성!<br><span style="font-size:58%;color:#fff">특별 고양이 「'+b.name+'」 획득!</span>';z.style.display='block';zoneT=3.2;
  const f=FX[b.fx];for(let k=0;k<70;k++){const a=Math.random()*Math.PI*2,s=40+Math.random()*120;parts.push({x:cat.x,y:cat.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-40,life:1.2,max:1.2,col:(f?f.c:['#ffe14a'])[k%(f?f.c.length:1)],sz:2,g:120});}
  sfx('buy');setTimeout(()=>sfx('gem'),250);vib(80);}
-function grantPast(){if(save.best>=5000&&!save.skillBlast){save.skillBlast=true;persist();}const got=[];for(const b of MS_BREEDS())if(save.best>=b.ms&&!save.breeds.includes(b.id)){save.breeds.push(b.id);got.push(b.name);}if(got.length){persist();setTimeout(()=>toast('🎁 기록 보상 고양이 '+got.length+'마리 지급!'),600);}}
+function grantPast(){if(save.best>=2500&&!save.skillBlast){save.skillBlast=true;persist();}const got=[];for(const b of MS_BREEDS())if(save.best>=b.ms&&!save.breeds.includes(b.id)){save.breeds.push(b.id);got.push(b.name);}if(got.length){persist();setTimeout(()=>toast('🎁 기록 보상 고양이 '+got.length+'마리 지급!'),600);}}
 function overBadge(){const t=[];if(newBest)t.push('🎉 신기록!');if(runUnlocks.length)t.push('🐱 새 고양이: '+runUnlocks.join(', '));const e=$('onew');e.innerHTML=t.join('<br>');e.style.display=t.length?'block':'none';}
 function catSprite(pose,fr,bid,oid){
  const key=pose+fr+'|'+bid+'|'+oid;let c=sprC.get(key);if(c)return c;
@@ -1344,7 +1344,7 @@ function updatePlay(dt){
  if(c.mode!=='dead'&&c.y-camY>H+26)die(true);
  if((mode==='normal'||mode==='hard')&&!portalOn&&runFloor>=1290&&runFloor<1320&&!save.breeds.includes('shifter')){portalOn=true;const py=-(1320-1)*FPX;clearRange(py-150,py+150);calm.push([py-200,py+200]);coins=coins.filter(o=>Math.abs(o.y-py)>40);hz.push({type:'portal',x:MX,y:py});}
  if(mode==='versus')vsTick(dt);
- {const br=BREED[save.breed];if(br.fx&&c.mode!=='dead')fxEmit(c.x,c.y,br,dt);if(runFloor>=5000&&!save.skillBlast&&mode!=='boss'){save.skillBlast=true;persist();const z=$('zone');z.innerHTML='💥 5000m 달성!<br><span style="font-size:55%">폭풍 스킬 획득! E키·Shift 또는 💥 버튼</span>';z.style.display='block';zoneT=3.5;sfx('buy');vib(100);}if(mode!=='boss'){for(const b of MS_BREEDS())if(runFloor>=b.ms&&!save.breeds.includes(b.id)){unlockMS(b);break;}}}
+ {const br=BREED[save.breed];if(br.fx&&c.mode!=='dead')fxEmit(c.x,c.y,br,dt);if(runFloor>=2500&&!save.skillBlast&&mode!=='boss'){save.skillBlast=true;persist();const z=$('zone');z.innerHTML='💥 2500m 달성!<br><span style="font-size:55%">폭풍 스킬 획득! E키·Shift 또는 💥 버튼</span>';z.style.display='block';zoneT=3.5;sfx('buy');vib(100);}if(mode!=='boss'){for(const b of MS_BREEDS())if(runFloor>=b.ms&&!save.breeds.includes(b.id)){unlockMS(b);break;}}}
  if(save.breed==='golden'&&Math.random()<dt*8)parts.push({x:c.x+rnd(-9,9),y:c.y+rnd(-10,8),vx:0,vy:-8,life:.5,max:.5,col:'#fff6a0',sz:1,g:0});
 }
 function updateDying(dt){
@@ -1550,6 +1550,7 @@ function fbDB(){return{collection(c){return{
 let DB=null,USER=null,UID=null;
 async function initOnline(){if(FB){DB=fbDB();if(!save.uid){save.uid=Array.from({length:16},()=>'abcdefghijklmnopqrstuvwxyz0123456789'[Math.random()*36|0]).join('');persist();}UID=save.uid;ROOM=fbRoom('lobby');lobbyInit();return;}try{if(!window.claude||typeof window.claude.use!=='function')return;DB=await window.claude.use('db');USER=await window.claude.use('user');if(USER&&USER.id)UID=await USER.id();ROOM=await window.claude.use('room');if(ROOM)lobbyInit();}catch(e){DB=null;}}
 async function submitScore(){if(!DB||!UID||save.best<1)return;try{await DB.collection('ranking').doc(UID).set({nick:(save.nick||'이름없는 냥이').slice(0,10),best:save.best,breed:save.breed,outfit:save.outfit,t:Date.now()});}catch(e){}}
+let rankCache='',rankAt=0;
 async function loadRank(){
  const box=$('rankBox');if(!box)return;
  if(!DB){box.innerHTML='<div class="note">온라인에 연결되지 않았어요. GitHub에 올렸다면 코드 맨 위 FIREBASE_URL에 Firebase 주소를 넣어 주세요. 혼자 하는 플레이와 기록 저장은 그대로 돼요.</div>';return;}
@@ -1559,7 +1560,7 @@ async function loadRank(){
   let html='';s.docs.forEach((d,i)=>{const v=d.data()||{},best=Math.max(0,Math.floor(Number(v.best)||0)),nick=typeof v.nick==='string'?v.nick.slice(0,10):'냥이',
    b=BREED[v.breed]?v.breed:'cheese',o=OUTFIT[v.outfit]?v.outfit:'none',me=d.id===UID;
    html+='<div class="rk'+(me?' me':'')+'"><span class="no">'+(i<3?['🥇','🥈','🥉'][i]:i+1)+'</span><img src="'+headURL(b,o)+'" alt=""><span class="nn">'+esc(nick)+(me?' (나)':'')+'</span><b>'+fmt(best)+'m</b></div>';});
-  $('rankBox').innerHTML=html;
+  rankAt=Date.now();if(html!==rankCache){rankCache=html;$('rankBox').innerHTML=html;}
  }catch(e){if($('rankBox'))$('rankBox').innerHTML='<div class="note">랭킹을 불러오지 못했어요. 잠시 후 다시 열어 주세요.</div>';}
 }
 
@@ -1780,7 +1781,7 @@ function lobbyInit(){
 }
 let lobbyLast='';
 function lobbyUpdate(extra){if(!ROOM)return;const o=Object.assign(myInfo(),extra||{});const k=JSON.stringify(o);if(k===lobbyLast&&!extra)return;lobbyLast=k;ROOM.presence(o).catch(()=>{});}
-function softRerender(){const now=Date.now();if(now-lobbyRR<500)return;lobbyRR=now;if(curPanel==='online'&&$('modal').classList.contains('on')){const inp=$('fcIn'),rc=$('rcIn'),a=inp&&inp.value,b=rc&&rc.value;rerender();if($('fcIn')&&a)$('fcIn').value=a;if($('rcIn')&&b)$('rcIn').value=b;}}
+function softRerender(){const now=Date.now();if(now-lobbyRR<500)return;lobbyRR=now;if(curPanel==='online'&&onlineTab!=='rank'&&$('modal').classList.contains('on')){const inp=$('fcIn'),rc=$('rcIn'),a=inp&&inp.value,b=rc&&rc.value;rerender();if($('fcIn')&&a)$('fcIn').value=a;if($('rcIn')&&b)$('rcIn').value=b;}}
 function showInvite(p,room){invPending={room,nick:String(p.presence.nick||'친구').slice(0,10)};
  if(state!=='home'){toast('⚔️ '+invPending.nick+'님이 대결을 신청했어요 (홈에서 확인)');return;}
  onlineTab='vs';openPanel('online');sfx('zone');}
@@ -1885,7 +1886,7 @@ PANELS.online=function(){
  const tabs='<div class="tabs"><button class="gb sm'+(onlineTab==='rank'?' act':'')+'" data-act="otab" data-arg="rank">🏆 랭킹</button><button class="gb sm'+(onlineTab==='friend'?' act':'')+'" data-act="otab" data-arg="friend">👫 친구</button><button class="gb sm'+(onlineTab==='vs'?' act':'')+'" data-act="otab" data-arg="vs">⚔️ 대결</button></div>';
  const off=!ROOM?(FB?'<div class="note">서버에 연결하는 중이에요…</div>':'<div class="note">온라인에 연결되지 않았어요. GitHub에 올렸다면 코드 맨 위 FIREBASE_URL에 Firebase 주소를 넣어 주세요.</div>'):'';
  let h='';
- if(onlineTab==='rank'){setTimeout(loadRank,0);
+ if(onlineTab==='rank'){queueMicrotask(()=>{if(rankCache&&$('rankBox'))$('rankBox').innerHTML=rankCache;});if(Date.now()-rankAt>15000)setTimeout(loadRank,0);
   const live=lobbyPeersList.slice().sort((a,b)=>(Number(b.presence.best)||0)-(Number(a.presence.best)||0));
   h='<div class="li"><span class="em">🏆</span><div class="tx"><b>내 최고 기록 '+fmt(save.best)+'m</b><small>닉네임: '+esc(save.nick||'이름없는 냥이')+' (프로필에서 변경)</small></div></div>'+
    '<div class="note">전체 랭킹 (가장 높이 올라간 순)</div><div class="panel" style="padding:calc(var(--u)*2)" id="rankBox"><div class="note">랭킹 불러오는 중…</div></div>'+
