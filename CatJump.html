@@ -328,7 +328,7 @@ const BREEDS=[
  {id:'diamond',name:'다이아냥',desc:'1500m 달성 보상 · 무지갯빛 보석',ms:1500,price:0,cur:'c',fancy:1,pat:'diamond',F:'#e8f8ff',B:'#ffffff',E:'#ff4ab0',O:'#4a8ab0',fx:'prism',acc:['crown']},
  {id:'neon',name:'네온 사이버냥',desc:'1800m 달성 보상 · 빛나는 네온',ms:1800,price:0,cur:'c',fancy:1,pat:'neon',F:'#14141e',B:'#22223a',E:'#3affff',O:'#3affff',fx:'neon'},
  {id:'cosmic',name:'우주의 왕 냥',desc:'2000m 달성 보상 · 최강의 전설',ms:2000,price:0,cur:'c',fancy:1,pat:'cosmic',F:'#1c1648',B:'#3a2a7a',E:'#ffd23f',O:'#ffd23f',fx:'cosmic',acc:['crown','halo','wingsG']},
- {id:'shifter',name:'변신냥',desc:'비밀 고양이 · 3초마다 다른 고양이로 변신!',secret:1,price:0,cur:'c',fancy:1,pat:'shift',F:'#c8d0e0',B:'#eef2fa',E:'#ff4ab0',O:'#3a3a5a'}
+ {id:'shifter',name:'변신냥',desc:'비밀 고양이 · 3초마다 다른 고양이로 변신!',secret:1,price:0,cur:'c',fancy:1,pat:'shift',F:'#b88ae8',B:'#efe0ff',E:'#ff4ab0',O:'#3a1a5a'}
 ];
 const BREED={};BREEDS.forEach(b=>BREED[b.id]=b);
 
@@ -544,7 +544,7 @@ function fancyCol(p,x,y,h,br){const k=p.k,pat=br.pat,m=(a,n)=>((Math.floor(a)%n)
   case'angel':{if(belly)return'#fff8e8';if(k==='paw'||(p.paw&&h&&h[0]>.74))return'#ffe8a0';return m(x+y,9)===0?'#fff2c0':'#ffffff';}
   case'dragon':{if(belly)return'#f2e08a';return m(x+y*2,5)===0?'#1e7a3a':m(x*2-y,7)===0?'#6ae07a':'#3ab05a';}
   case'diamond':{const C=['#ffc8e8','#c8e8ff','#e8ffc8','#fff0c8'];if(m(x*3+y*5,11)<2)return C[m(x+y,4)];return belly?'#ffffff':'#e8f8ff';}
-  case'shift':{if(m(x+y,10)<2)return['#ffc8e8','#c8e8ff','#e8ffc8','#fff0c8','#e0c8ff'][m(x-y,5)];if(belly)return'#eef2fa';return m(x*2+y,7)===0?'#a8b4c8':'#c8d0e0';}
+  case'shift':{if(m(x+y,10)<2)return['#ffc8f0','#e0c8ff','#ffffff','#f0d8ff','#c8b0ff'][m(x-y,5)];if(belly)return'#efe0ff';return m(x*2+y,7)===0?'#9a6ad0':'#b88ae8';}
   case'neon':{if(belly)return'#22223a';return m(x+y,6)===0?'#3affff':m(x-y,7)===0?'#ff3aff':'#14141e';}
  }return br.F;}
 const WING_PTS=[[0,10],[4,2],[10,-3],[19,-5],[16,0],[19,3],[14,6],[17,9],[10,10],[12,14],[4,14]];
