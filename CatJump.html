@@ -328,7 +328,7 @@ const BREEDS=[
  {id:'diamond',name:'다이아냥',desc:'1500m 달성 보상 · 무지갯빛 보석',ms:1500,price:0,cur:'c',fancy:1,pat:'diamond',F:'#e8f8ff',B:'#ffffff',E:'#ff4ab0',O:'#4a8ab0',fx:'prism',acc:['crown']},
  {id:'neon',name:'네온 사이버냥',desc:'1800m 달성 보상 · 빛나는 네온',ms:1800,price:0,cur:'c',fancy:1,pat:'neon',F:'#14141e',B:'#22223a',E:'#3affff',O:'#3affff',fx:'neon'},
  {id:'cosmic',name:'우주의 왕 냥',desc:'2000m 달성 보상 · 최강의 전설',ms:2000,price:0,cur:'c',fancy:1,pat:'cosmic',F:'#1c1648',B:'#3a2a7a',E:'#ffd23f',O:'#ffd23f',fx:'cosmic',acc:['crown','halo','wingsG']},
- {id:'shifter',name:'변신냥',desc:'비밀 고양이 · 3초마다 다른 고양이로 변신!',secret:1,price:0,cur:'c',fancy:1,pat:'shift',F:'#b88ae8',B:'#efe0ff',E:'#ff4ab0',O:'#3a1a5a'}
+ {id:'shifter',name:'변신냥',desc:'비밀 고양이 · 3초마다 다른 고양이로 변신!',secret:1,price:0,cur:'c',fancy:1,pat:'shift',face:'pencil',F:'#b88ae8',B:'#efe0ff',E:'#ff4ab0',O:'#4a3a5e'}
 ];
 const BREED={};BREEDS.forEach(b=>BREED[b.id]=b);
 
@@ -510,6 +510,10 @@ function furCol(p,x,y,h,br,H){
 function drawFace(g,H,br,of){
  const P=(x,y,c)=>{g.fillStyle=c;g.fillRect(Math.round(x)+COX,Math.round(y)+COY,1,1);};
  const f=H.f,ex1=Math.round(H.cx-4.6+f*2),ex2=Math.round(H.cx+2.4+f*2),ey=Math.round(H.cy-1.6),dk='#1c1018';
+ if(br.face==='pencil'&&H.eyes!=='x'){const G='#3e3e48',L='#7a7a88',sq=H.eyes==='squint'||H.eyes==='happy';
+  for(const[ex,s]of[[ex1,0],[ex2,1]]){if(sq){P(ex-1,ey+1,G);P(ex,ey,G);P(ex+1,ey,L);P(ex+2,ey+1,G);P(ex+3,ey+2,L);}else{P(ex,ey-1,G);P(ex+1,ey-1,L);P(ex-1,ey,G);P(ex+2,ey,G);P(ex-1,ey+1,L);P(ex+2,ey+1,G);P(ex,ey+2,G);P(ex+1,ey+2,G);P(ex+2,ey+2,L);P(ex+3,ey-2+s,L);P(ex+(s?0:1),ey+1,'#ffffff');}}
+  const mx=Math.round(H.cx-2+f*2.6),my=Math.round(H.cy+2);P(mx,my,G);P(mx+1,my+1,G);P(mx+2,my+1,L);P(mx+3,my+1,G);P(mx+4,my,G);P(mx+5,my-1,L);P(mx+2,my,L);
+  for(const bx of[ex1-2,ex2+1])for(let k=0;k<3;k++)P(bx+k,ey+3+(k%2),'rgba(200,120,170,0.7)');return;}
  if(of.face==='mask'){for(let x=ex1-2;x<=ex2+3;x++)for(let y=ey-1;y<=ey+3;y++)P(x,y,y===ey-1||y===ey+3?'#a01818':'#e02a2a');}
  const eye=(x,second)=>{switch(H.eyes){
   case'happy':P(x,ey+1,dk);P(x+1,ey,dk);P(x+2,ey+1,dk);break;
