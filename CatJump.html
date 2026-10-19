@@ -511,7 +511,7 @@ function drawFace(g,H,br,of){
  const P=(x,y,c)=>{g.fillStyle=c;g.fillRect(Math.round(x)+COX,Math.round(y)+COY,1,1);};
  const f=H.f,ex1=Math.round(H.cx-4.6+f*2),ex2=Math.round(H.cx+2.4+f*2),ey=Math.round(H.cy-1.6),dk='#1c1018';
  if(br.face==='pencil'&&H.eyes!=='x'){const G='#f4e8ff',L='#c8a8f0',K='#06020c',sq=H.eyes==='squint'||H.eyes==='happy';
-  for(const[ex,s]of[[ex1,0],[ex2,1]]){if(sq){P(ex-1,ey+1,K);P(ex,ey,K);P(ex+1,ey,K);P(ex+2,ey+1,K);}else{for(let yy=-1;yy<3;yy++){P(ex,ey+yy,K);P(ex+1,ey+yy,K);}P(ex-1,ey,K);P(ex+2,ey,K);P(ex-1,ey+1,K);P(ex+2,ey+1,K);P(ex,ey-1,'#ffffff');P(ex+1,ey+1,'#5a4a6a');}}
+  for(const[ex,s]of[[ex1,0],[ex2,1]]){if(sq){P(ex-1,ey+1,K);P(ex,ey,K);P(ex+1,ey,K);P(ex+2,ey+1,K);}else{for(let xx=-1;xx<3;xx++)P(ex+xx,ey+1,K);P(ex,ey+2,K);P(ex+1,ey+2,K);P(ex-1,ey+2,'#3a1060');P(ex+2,ey+2,'#3a1060');P(s?ex+3:ex-2,ey,K);}}
   const mx=Math.round(H.cx-2+f*2.6),my=Math.round(H.cy+2);P(mx,my,G);P(mx+1,my+1,G);P(mx+2,my+1,G);P(mx+3,my+1,G);P(mx+4,my,G);
   P(mx+1,my+2,'#ff5a8a');P(mx+2,my+2,'#ff7aa0');P(mx+3,my+2,'#ff5a8a');P(mx+1,my+3,'#ff5a8a');P(mx+2,my+3,'#ff9ab8');P(mx+3,my+3,'#ff5a8a');P(mx+2,my+4,'#e03a6a');P(mx+2,my+2,'#ff9ab8');
   for(const bx of[ex1-2,ex2+1])for(let k=0;k<3;k++)P(bx+k,ey+3+(k%2),'rgba(255,120,190,0.75)');return;}
