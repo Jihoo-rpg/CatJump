@@ -1496,7 +1496,7 @@ function render(){
   for(const r of rockets)ctx.drawImage(FISH,sn(r.x)-6,sn(r.y-cy)-3);}
  for(const h of hz){const hy=h.y1!==undefined?h.y2:h.y;if(h.type==='snow'||h.type==='cannon'||h.type==='portal')continue;if(hy<cy-4&&hy>cy-130){const x=h.type==='spikes'?(h.side==='L'?LX+8:RX-8):h.type==='laser'?MX:sn(h.x);const bl=((gt*6)|0)%2;px(x-5,1,11,10,bl?'#ff2a4a':'#ffe14a');px(x-5,1,11,1,'#2a1a14');px(x-5,10,11,1,'#2a1a14');px(x-5,1,1,10,'#2a1a14');px(x+5,1,1,10,'#2a1a14');px(x-1,3,2,4,'#2a1a14');px(x-1,8,2,1,'#2a1a14');}}
  for(const d of debris){ctx.save();ctx.globalAlpha=clamp(d.life/1.1,0,1);ctx.translate(sn(d.x),sn(d.y-cy));ctx.rotate(d.rot);ctx.drawImage(d.img,-d.img.width/2,-d.img.height/2);ctx.restore();}
- if(sring){const rr=sring.t*120;ctx.globalAlpha=1-sring.t;ctx.strokeStyle='#ffffff';ctx.lineWidth=4*(1-sring.t)+1;ctx.beginPath();ctx.arc(sn(sring.x),sn(sring.y-cy),rr,0,7);ctx.stroke();ctx.strokeStyle='#6affff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(sn(sring.x),sn(sring.y-cy),rr*.8,0,7);ctx.stroke();ctx.globalAlpha=1;}
+ if(sring){const rr=sring.t*260;ctx.globalAlpha=1-sring.t;ctx.strokeStyle='#ffffff';ctx.lineWidth=4*(1-sring.t)+1;ctx.beginPath();ctx.arc(sn(sring.x),sn(sring.y-cy),rr,0,7);ctx.stroke();ctx.strokeStyle='#6affff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(sn(sring.x),sn(sring.y-cy),rr*.8,0,7);ctx.stroke();ctx.globalAlpha=1;}
  const inBasket=cat&&cat.mode==='basket'&&elev;
  const bx=inBasket?elev.x||MX:0,by=inBasket?(elev.y!=null?elev.y:elev.by):0;
  if(inBasket)drawBasketBack(bx,by-cy);
@@ -2162,7 +2162,7 @@ Object.assign(ZD,{
   if(s%8===0)drum('timp',t,1);if(s%8===6)drum('timp',t,0);if(s%32===0)drum('crash',t);const fan=[0,-1,0,0,4,-1,2,4,7,-1,-1,4,7,-1,9,7];const m=fan[s%16];if(m>=0)I.brass(mtof(c.n(m)+12),t,c.e*1.5,.06);}}});
 
 let shiftB='shifter',shiftT=0,portalOn=false,portalGo=false,skillCD=0,debris=[],sring=null,skillShown='';
-const SKILLS={blast:{n:'폭풍',e:'💥',cd:25,cls:'',d:'주변 장애물을 싹 날려버려요',how:'2500m 달성'},pumpkin:{n:'호박 마법',e:'🎃',cd:40,cls:'pk',d:'5초 동안 모든 장애물이 사라지고 벽이 호박으로! 끝나면 보호막',how:'할로윈 이벤트 🍬250'}};
+const SKILLS={blast:{n:'폭풍',e:'💥',cd:12,cls:'',d:'고양이 위아래 25m 안의 장애물을 싹 날려버려요',how:'2500m 달성'},pumpkin:{n:'호박 마법',e:'🎃',cd:40,cls:'pk',d:'5초 동안 모든 장애물이 사라지고 벽이 호박으로! 끝나면 보호막',how:'할로윈 이벤트 🍬250'}};
 let cds={},pumpkinT=0;
 function ownSkill(id){if(!save.skills)save.skills=[];return save.skills.includes(id);}
 function giveSkill(id){if(!save.skills)save.skills=[];if(!save.skills.includes(id))save.skills.push(id);if(!save.slots)save.slots=[null,null];if(!save.slots.includes(id)){const e=save.slots.indexOf(null);if(e>=0)save.slots[e]=id;}persist();}
@@ -2181,13 +2181,13 @@ function makePumpkinWall(){const c=mk(16,48),g=c.getContext('2d'),P=(x,y,w,h,col
  P(0,0,16,48,'#e8701a');for(const x of[3,8,13])P(x,0,1,48,'#b84a0a');P(14,0,2,48,'#a03a08');P(0,0,1,48,'#ff9a3a');
  P(2,14,4,3,'#2a0a04');P(9,14,4,3,'#2a0a04');P(3,15,2,1,'#ffe14a');P(10,15,2,1,'#ffe14a');for(let x=2;x<13;x++)P(x,22+((x%2)?1:0),1,2,'#2a0a04');for(let x=3;x<12;x+=2)P(x,23,1,1,'#ffe14a');
  P(6,2,2,4,'#3a8a2a');P(8,3,3,1,'#5ccc5a');P(0,46,16,2,'#8a2a04');return[c,flipC(c)];}
-function doBlast(){const c=cat,R=100,keep=[];
- for(const h of hz){let hit=false;if(h.type==='spikes'||h.type==='snow')hit=h.y2>c.y-R&&h.y1<c.y+R;else if(h.type==='laser')hit=Math.abs(h.y-c.y)<R;else if(h.type==='cannon'||h.type==='portal')hit=false;else hit=Math.hypot(h.x-c.x,h.y-c.y)<R;
+function doBlast(){const c=cat,R=25*FPX,keep=[];
+ for(const h of hz){let hit=false;if(h.type==='spikes'||h.type==='snow')hit=h.y2>c.y-R&&h.y1<c.y+R;else if(h.type==='laser')hit=Math.abs(h.y-c.y)<R;else if(h.type==='cannon'||h.type==='portal')hit=false;else hit=Math.abs(h.y-c.y)<R;
   if(!hit){keep.push(h);continue;}const hx=h.x!=null?h.x:(h.side==='L'?LX+6:RX-6),hy=h.y!=null?h.y:(h.y1+h.y2)/2,dx=hx-c.x,dy=hy-c.y,L=Math.hypot(dx,dy)||1;
   const img=h.type==='saw'?SAW[0]:h.type==='bird'?BIRD[0]:h.type==='bat'?BAT[0]:h.type==='ghost'?GHOST:h.type==='spikes'?(h.side==='L'?SPIKE:SPIKEF):null;
   if(img){const n=h.type==='spikes'?Math.max(1,Math.floor((h.y2-h.y1)/12)):1;for(let k=0;k<n;k++)debris.push({img,x:hx,y:h.type==='spikes'?h.y1+k*12:hy,vx:dx/L*320+rnd(-60,60),vy:dy/L*220-180+rnd(-60,40),rot:0,vr:rnd(-14,14),life:1.1});}
   burst(hx,hy,10,['#ffffff','#8ab8ff','#6affff'],120,.5,0);}
- hz=keep;if(boss)shots=shots.filter(s=>{if(Math.hypot(s.x-c.x,s.y-c.y)<R*1.4){burst(s.x,s.y,6,['#ffffff','#6affff'],60,.4,0);return false;}return true;});
+ hz=keep;if(boss)shots=shots.filter(s=>{if(Math.abs(s.y-c.y)<R){burst(s.x,s.y,6,['#ffffff','#6affff'],60,.4,0);return false;}return true;});
  sring={x:c.x,y:c.y,t:0};shake=.4;sfx('boom');vib(120);burst(c.x,c.y,40,['#ffffff','#8ab8ff','#ffe14a','#6affff'],170,.7,0);}
 function updSkillUI(){const on=['play','count','ready'].includes(state);let key='';for(let i=0;i<2;i++){const id=save.slots&&save.slots[i];key+=(on&&id?id+':'+Math.ceil(cds[id]||0):'-')+'|';}if(key===skillShown)return;skillShown=key;
  for(let i=0;i<2;i++){const b=$('sk'+i),id=save.slots&&save.slots[i];if(!on||!id||!SKILLS[id]){b.style.display='none';continue;}const sk=SKILLS[id],cd=Math.ceil(cds[id]||0);b.style.display='flex';b.className='skb'+(sk.cls?' '+sk.cls:'')+(cd>0?' cd':'');b.innerHTML=(cd>0?cd:sk.e)+'<i>'+(i?'R':'E')+'</i>';}}
