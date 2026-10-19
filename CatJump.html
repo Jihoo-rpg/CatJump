@@ -698,9 +698,9 @@ function fillIcons(){document.querySelectorAll('img[data-ic]').forEach(im=>{im.s
 
 /* ================= 보스 스프라이트 ================= */
 const BOSSES=[
- {id:'crow',name:'까마귀 대장',hp:8,desc:'깃털 폭탄을 떨어뜨려요',reward:[300,3],shot:'feather'},
- {id:'bat',name:'박쥐 백작',hp:12,desc:'부채꼴로 박쥐를 날려요',reward:[600,5],shot:'bat'},
- {id:'rat',name:'왕쥐 로봇',hp:16,desc:'조준 폭탄을 던져요',reward:[1000,8],shot:'bomb'},
+ {id:'crow',name:'까마귀 대장',hp:6,desc:'깃털 폭탄을 떨어뜨려요',reward:[300,3],shot:'feather'},
+ {id:'bat',name:'박쥐 백작',hp:9,desc:'부채꼴로 박쥐를 날려요',reward:[600,5],shot:'bat'},
+ {id:'rat',name:'왕쥐 로봇',hp:12,desc:'조준 폭탄을 던져요',reward:[1000,8],shot:'bomb'},
  {id:'shift',name:'변신 대마왕',hp:6,desc:'계속 다른 고양이로 변신해요',reward:[800,10],shot:'feather',secret:1,easy:1}];
 const bossC=new Map();
 function bossSprite(type,fr){const key=type+fr;let c=bossC.get(key);if(c)return c;
@@ -1206,7 +1206,7 @@ function genChunk(y0){
  let d=clamp(fl/1000,0,1)*.75+clamp((fl-1000)/4000,0,.25);if(mode==='hard')d=Math.min(1.4,d+.6);if(hard)d=Math.min(1.3,d+.4);
  const calmHere=calm.some(([a,b])=>yT<b&&y0>a);
  if(y0>-560||calmHere){coinPattern(y0-20);if(hw)candyPattern(y0-70);return;}
- if(mode==='boss'){coinPattern(y0-20);if(fl>8&&gr()<.35){const sd=gr()<.5?'L':'R';if(gr()<.5){if(wallFree(sd,ym-24,ym+24)){hz.push({type:'spikes',side:sd,y1:ym-24,y2:ym+24});wallD.push({side:sd,y1:ym-24,y2:ym+24});}}else hz.push({type:'snow',side:sd,y1:ym-40,y2:ym+40});}return;}
+ if(mode==='boss'){coinPattern(y0-20);if(fl>8&&gr()<.2){const sd=gr()<.5?'L':'R';if(gr()<.5){if(wallFree(sd,ym-24,ym+24)){hz.push({type:'spikes',side:sd,y1:ym-24,y2:ym+24});wallD.push({side:sd,y1:ym-24,y2:ym+24});}}else hz.push({type:'snow',side:sd,y1:ym-40,y2:ym+40});}return;}
  const opts=[['saw',2.5],['spikes',3],['coins',hard?.15:Math.max(.9,3.2-d*2.2)]];
  if(fl>35)opts.push(['snow',hard?.6:1.6]);
  if(fl>300)opts.push(['laser',.7+.8*d]);
@@ -1310,15 +1310,15 @@ function updBoss(dt){
  if(b.dead){b.deadT+=dt;if(Math.random()<dt*20)burst(b.x+rnd(-25,25),b.y+rnd(-20,20),6,['#ffe14a','#ff7a2a','#ffffff'],80,.5,0);if(b.deadT>1.8&&state==='play')showOver(true);return;}
  b.atk-=dt;
  if(b.atk<=0){b.n=(b.n||0)+1;const st=b.st;
-  if(b.def.shot==='feather'||b.n%3===0){for(let i=-1;i<=1;i++)shots.push({k:'feather',x:b.x+i*12,y:b.y+12,vx:i*22,vy:b.def.easy?55:70+st*18,g:50,r:0});}
-  if(b.def.shot==='bat'){for(let i=0;i<5;i++){const a=Math.PI*(.3+i*.1);shots.push({k:'bat',x:b.x,y:b.y+10,vx:Math.cos(a)*95,vy:Math.sin(a)*95,g:0,r:0});}}
-  if(b.def.shot==='bomb'){const dx=cat.x-b.x,dy=cat.y-b.y,L=Math.hypot(dx,dy)||1;shots.push({k:'bomb',x:b.x,y:b.y+10,vx:dx/L*135,vy:dy/L*135,g:0,r:0});shots.push({k:'bomb',x:rnd(LX+20,RX-20),y:b.y,vx:0,vy:90,g:40,r:0});}
-  b.atk=b.def.easy?rnd(2.6,3.4):rnd(1.7,2.5)-st*.3;}
+  if(b.def.shot==='feather'||b.n%3===0){for(let i=-1;i<=1;i++)shots.push({k:'feather',x:b.x+i*12,y:b.y+12,vx:i*22,vy:b.def.easy?55:60+st*12,g:50,r:0});}
+  if(b.def.shot==='bat'){for(let i=0;i<5;i++){const a=Math.PI*(.3+i*.1);shots.push({k:'bat',x:b.x,y:b.y+10,vx:Math.cos(a)*75,vy:Math.sin(a)*75,g:0,r:0});}}
+  if(b.def.shot==='bomb'){const dx=cat.x-b.x,dy=cat.y-b.y,L=Math.hypot(dx,dy)||1;shots.push({k:'bomb',x:b.x,y:b.y+10,vx:dx/L*110,vy:dy/L*110,g:0,r:0});shots.push({k:'bomb',x:rnd(LX+20,RX-20),y:b.y,vx:0,vy:90,g:40,r:0});}
+  b.atk=b.def.easy?rnd(2.6,3.4):rnd(2.1,2.9)-st*.2;}
  b.orbT-=dt;
- if(b.orbT<=0){if(items.filter(o=>o.type==='orb').length<2)items.push({type:'orb',x:rnd(LX+22,RX-22),y:camY+H*rnd(.18,.36),ph:0});b.orbT=rnd(2.4,3.4);}
+ if(b.orbT<=0){if(items.filter(o=>o.type==='orb').length<3)items.push({type:'orb',x:rnd(LX+22,RX-22),y:camY+H*rnd(.18,.36),ph:0});b.orbT=rnd(1.9,2.7);}
  for(const s of shots){s.vy+=s.g*dt;s.x+=s.vx*dt;s.y+=s.vy*dt;s.r+=dt*6;}
  shots=shots.filter(s=>s.y<camY+H+30&&s.x>-20&&s.x<W+20);
- if(cat.mode==='wall'||cat.mode==='air')for(const s of shots){if(Math.hypot(s.x-cat.x,s.y-cat.y)<10){hit();break;}}
+ if(cat.mode==='wall'||cat.mode==='air')for(const s of shots){if(Math.hypot(s.x-cat.x,s.y-cat.y)<9){hit();break;}}
  for(const r of rockets){const dx=b.x-r.x,dy=b.y-r.y,L=Math.hypot(dx,dy)||1;r.x+=dx/L*300*dt;r.y+=dy/L*300*dt;
   if(Math.random()<.6)parts.push({x:r.x,y:r.y,vx:rnd(-10,10),vy:rnd(-10,10),life:.3,max:.3,col:'#ffe14a',sz:1,g:0});
   if(L<14){r.done=true;b.hp--;b.flash=.25;burst(b.x,b.y,16,['#ffe14a','#ffffff','#ff7a7a'],90,.5,40);sfx('hit');shake=.15;
