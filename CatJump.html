@@ -104,6 +104,9 @@ button:focus-visible{outline:calc(var(--u)*1.5) solid #fff;outline-offset:var(--
 #bossbar .nm{font-size:calc(var(--u)*6.5);}
 #bossbar .bar{height:calc(var(--u)*5);border:var(--o) solid var(--ink);background:#3a1a2a;border-radius:calc(var(--u)*3);overflow:hidden;margin-top:var(--o);}
 #bossbar .bar i{display:block;height:100%;width:100%;background:linear-gradient(#ff7a7a,#e02a4a);transition:width .2s;}
+#skillBtn{position:absolute;right:calc(var(--u)*6);bottom:calc(var(--u)*10);width:calc(var(--u)*30);height:calc(var(--u)*30);border-radius:50%;pointer-events:auto;display:none;align-items:center;justify-content:center;padding:0;
+ font-family:'Black Han Sans','Jua',sans-serif;font-size:calc(var(--u)*13);color:#fff;background:radial-gradient(circle at 40% 35%,#8ab8ff,#2a4ad8);border:var(--o) solid var(--ink);box-shadow:0 0 calc(var(--u)*6) #6affff,0 calc(var(--u)*1.5) 0 var(--ink);}
+#skillBtn.cd{background:#3a3a50;box-shadow:0 calc(var(--u)*1.5) 0 var(--ink);font-size:calc(var(--u)*11);text-shadow:0 var(--o) 0 #000;}
 @keyframes blink{50%{opacity:.25}}
 @media (prefers-reduced-motion: reduce){#hint{animation:none}}
 /* ---------- panels ---------- */
@@ -187,6 +190,7 @@ button:focus-visible{outline:calc(var(--u)*1.5) solid #fff;outline-offset:var(--
    <div id="hint" class="ol">탭 · 클릭 · 스페이스바로 점프!<br><small>공중에서 한 번 더 누르면 더블 점프</small></div>
    <div id="zone" class="ol"></div>
    <div id="elevMsg" class="ol"></div>
+   <button id="skillBtn" data-act="skill" aria-label="스킬">💥</button>
   </div>
 
   <div id="home" class="screen">
@@ -549,6 +553,7 @@ function fancyCol(p,x,y,h,br){const k=p.k,pat=br.pat,m=(a,n)=>((Math.floor(a)%n)
   case'angel':{if(belly)return'#fff8e8';if(k==='paw'||(p.paw&&h&&h[0]>.74))return'#ffe8a0';return m(x+y,9)===0?'#fff2c0':'#ffffff';}
   case'dragon':{if(belly)return'#f2e08a';return m(x+y*2,5)===0?'#1e7a3a':m(x*2-y,7)===0?'#6ae07a':'#3ab05a';}
   case'diamond':{const C=['#ffc8e8','#c8e8ff','#e8ffc8','#fff0c8'];if(m(x*3+y*5,11)<2)return C[m(x+y,4)];return belly?'#ffffff':'#e8f8ff';}
+  case'storm':{if(belly)return'#8ab8ff';if(m(x+Math.abs(m(y,6)-3),9)===0)return'#ffffff';if(m(x*3-y,13)===0)return'#6affff';return Math.sin(x*.5+y*.3)>.3?'#3a5ae8':'#2a3ab8';}
   case'shift':{if(m(x+y,10)<2)return['#9a4ae0','#8a3ad8','#a85ae8','#7a2ac8','#9040d8'][m(x-y,5)];if(belly)return'#7a30c8';return m(x*2+y,7)===0?'#4e1690':'#6420b0';}
   case'neon':{if(belly)return'#22223a';return m(x+y,6)===0?'#3affff':m(x-y,7)===0?'#ff3aff':'#14141e';}
  }return br.F;}
@@ -581,7 +586,7 @@ function unlockMS(b){save.breeds.push(b.id);persist();runUnlocks.push(b.name);
  const z=$('zone');z.innerHTML='🎉 '+b.ms+'m 달성!<br><span style="font-size:58%;color:#fff">특별 고양이 「'+b.name+'」 획득!</span>';z.style.display='block';zoneT=3.2;
  const f=FX[b.fx];for(let k=0;k<70;k++){const a=Math.random()*Math.PI*2,s=40+Math.random()*120;parts.push({x:cat.x,y:cat.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-40,life:1.2,max:1.2,col:(f?f.c:['#ffe14a'])[k%(f?f.c.length:1)],sz:2,g:120});}
  sfx('buy');setTimeout(()=>sfx('gem'),250);vib(80);}
-function grantPast(){const got=[];for(const b of MS_BREEDS())if(save.best>=b.ms&&!save.breeds.includes(b.id)){save.breeds.push(b.id);got.push(b.name);}if(got.length){persist();setTimeout(()=>toast('🎁 기록 보상 고양이 '+got.length+'마리 지급!'),600);}}
+function grantPast(){if(save.best>=5000&&!save.skillBlast){save.skillBlast=true;persist();}const got=[];for(const b of MS_BREEDS())if(save.best>=b.ms&&!save.breeds.includes(b.id)){save.breeds.push(b.id);got.push(b.name);}if(got.length){persist();setTimeout(()=>toast('🎁 기록 보상 고양이 '+got.length+'마리 지급!'),600);}}
 function overBadge(){const t=[];if(newBest)t.push('🎉 신기록!');if(runUnlocks.length)t.push('🐱 새 고양이: '+runUnlocks.join(', '));const e=$('onew');e.innerHTML=t.join('<br>');e.style.display=t.length?'block':'none';}
 function catSprite(pose,fr,bid,oid){
  const key=pose+fr+'|'+bid+'|'+oid;let c=sprC.get(key);if(c)return c;
@@ -1143,13 +1148,13 @@ let state='home',prevState='play',mode='normal',gt=0,runT=0,overT=0,dyingT=0,sha
 let camY=-250,genY=0,lastCannon=0,runFloor=1,runCoins=0,runGems=0,runCandy=0,bankC=0,bankG=0,bankK=0,earnedC=0,revived=false,newBest=false,lastSpikeSide='L',hwAnnounced=false,dbl=false,victory=false;
 let cat=null,hz=[],coins=[],items=[],parts=[],calm=[],crane=null,elev=null,boss=null,shots=[],rockets=[];
 const floorOf=y=>Math.max(1,Math.floor(-y/FPX)+1);
-const slideSpd=()=>(48+Math.min(26,runFloor*.0255))*(1-.1*save.up.glove)*(mode==='hard'?1.55:1);
+const slideSpd=()=>(48+Math.min(60,runFloor*.05))*(1-.1*save.up.glove)*(mode==='hard'?1.9:1);
 const jvy=()=>-360*(1+.03*save.up.shoes),djvy=()=>-325*(1+.03*save.up.shoes);
 const pickR=()=>11+3*save.up.magnet;
 const coinMult=()=>(mode==='hard'?1.5:1)*(1+.04*(save.pet.lv-1))*(dbl?2:1);
 let lastZone=null,gr=Math.random,hardIn=false,hardDone={};const grnd=(a,b)=>a+gr()*(b-a);
 function resetRun(m,seed){
- lastZone=null;portalOn=false;portalGo=false;
+ lastZone=null;portalOn=false;portalGo=false;skillCD=0;debris=[];sring=null;
  runUnlocks=[];
  wallD=[];midD=[];hardIn=false;hardDone={};
  mode=m||'normal';const zm=mode==='halloween'?'halloween':'normal';if(zm!==zoneMode){zoneMode=zm;segC.clear();}gr=seed!=null?mulberry(seed):Math.random;hz=[];coins=[];items=[];parts=[];calm=[];shots=[];rockets=[];boss=null;victory=false;
@@ -1173,7 +1178,7 @@ function midFree(y){return!midD.some(m=>Math.abs(m.y-y)<80)&&!wallD.some(d=>y>d.
 const isHardZone=fl=>false;
 function genChunk(y0){
  const yT=y0-CH,ym=y0-CH/2,fl=-ym/FPX,hw=isHW(fl),hard=isHardZone(fl);
- let d=clamp(fl/1000,0,1)*.75+clamp((fl-1000)/4000,0,.25);if(mode==='hard')d=Math.min(1.25,d+.35);if(hard)d=Math.min(1.3,d+.4);
+ let d=clamp(fl/1000,0,1)*.75+clamp((fl-1000)/4000,0,.25);if(mode==='hard')d=Math.min(1.4,d+.6);if(hard)d=Math.min(1.3,d+.4);
  const calmHere=calm.some(([a,b])=>yT<b&&y0>a);
  if(y0>-560||calmHere){coinPattern(y0-20);if(hw)candyPattern(y0-70);return;}
  if(mode==='boss'){coinPattern(y0-20);if(fl>8&&gr()<.35){const sd=gr()<.5?'L':'R';if(gr()<.5){if(wallFree(sd,ym-24,ym+24)){hz.push({type:'spikes',side:sd,y1:ym-24,y2:ym+24});wallD.push({side:sd,y1:ym-24,y2:ym+24});}}else hz.push({type:'snow',side:sd,y1:ym-40,y2:ym+40});}return;}
@@ -1307,7 +1312,7 @@ function updHazards(dt){
 }
 function updatePlay(dt){
  runT+=dt;updHazards(dt);
- const c=cat;c.inv=Math.max(0,c.inv-dt);c.buf=Math.max(0,c.buf-dt);c.at+=dt;c.land=Math.max(0,c.land-dt);c.spinT=Math.max(0,c.spinT-dt);
+ const c=cat;skillCD=Math.max(0,skillCD-dt);c.inv=Math.max(0,c.inv-dt);c.buf=Math.max(0,c.buf-dt);c.at+=dt;c.land=Math.max(0,c.land-dt);c.spinT=Math.max(0,c.spinT-dt);
  if(c.mode==='wall'){
   c.snow=!!snowAt(c.side,c.y);
   c.y+=(c.snow?115:slideSpd())*dt;
@@ -1339,7 +1344,7 @@ function updatePlay(dt){
  if(c.mode!=='dead'&&c.y-camY>H+26)die(true);
  if((mode==='normal'||mode==='hard')&&!portalOn&&runFloor>=1290&&runFloor<1320&&!save.breeds.includes('shifter')){portalOn=true;const py=-(1320-1)*FPX;clearRange(py-150,py+150);calm.push([py-200,py+200]);coins=coins.filter(o=>Math.abs(o.y-py)>40);hz.push({type:'portal',x:MX,y:py});}
  if(mode==='versus')vsTick(dt);
- {const br=BREED[save.breed];if(br.fx&&c.mode!=='dead')fxEmit(c.x,c.y,br,dt);if(mode!=='boss'){for(const b of MS_BREEDS())if(runFloor>=b.ms&&!save.breeds.includes(b.id)){unlockMS(b);break;}}}
+ {const br=BREED[save.breed];if(br.fx&&c.mode!=='dead')fxEmit(c.x,c.y,br,dt);if(runFloor>=5000&&!save.skillBlast&&mode!=='boss'){save.skillBlast=true;persist();const z=$('zone');z.innerHTML='💥 5000m 달성!<br><span style="font-size:55%">폭풍 스킬 획득! E키·Shift 또는 💥 버튼</span>';z.style.display='block';zoneT=3.5;sfx('buy');vib(100);}if(mode!=='boss'){for(const b of MS_BREEDS())if(runFloor>=b.ms&&!save.breeds.includes(b.id)){unlockMS(b);break;}}}
  if(save.breed==='golden'&&Math.random()<dt*8)parts.push({x:c.x+rnd(-9,9),y:c.y+rnd(-10,8),vx:0,vy:-8,life:.5,max:.5,col:'#fff6a0',sz:1,g:0});
 }
 function updateDying(dt){
@@ -1481,6 +1486,8 @@ function render(){
    else{ctx.drawImage(BOMB,X-5,Y-6);if(((gt*12)|0)%2)px(X+2,Y-6,1,1,'#ffe14a');}}
   for(const r of rockets)ctx.drawImage(FISH,sn(r.x)-6,sn(r.y-cy)-3);}
  for(const h of hz){const hy=h.y1!==undefined?h.y2:h.y;if(h.type==='snow'||h.type==='cannon'||h.type==='portal')continue;if(hy<cy-4&&hy>cy-130){const x=h.type==='spikes'?(h.side==='L'?LX+8:RX-8):h.type==='laser'?MX:sn(h.x);const bl=((gt*6)|0)%2;px(x-5,1,11,10,bl?'#ff2a4a':'#ffe14a');px(x-5,1,11,1,'#2a1a14');px(x-5,10,11,1,'#2a1a14');px(x-5,1,1,10,'#2a1a14');px(x+5,1,1,10,'#2a1a14');px(x-1,3,2,4,'#2a1a14');px(x-1,8,2,1,'#2a1a14');}}
+ for(const d of debris){ctx.save();ctx.globalAlpha=clamp(d.life/1.1,0,1);ctx.translate(sn(d.x),sn(d.y-cy));ctx.rotate(d.rot);ctx.drawImage(d.img,-d.img.width/2,-d.img.height/2);ctx.restore();}
+ if(sring){const rr=sring.t*120;ctx.globalAlpha=1-sring.t;ctx.strokeStyle='#ffffff';ctx.lineWidth=4*(1-sring.t)+1;ctx.beginPath();ctx.arc(sn(sring.x),sn(sring.y-cy),rr,0,7);ctx.stroke();ctx.strokeStyle='#6affff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(sn(sring.x),sn(sring.y-cy),rr*.8,0,7);ctx.stroke();ctx.globalAlpha=1;}
  const inBasket=cat&&cat.mode==='basket'&&elev;
  const bx=inBasket?elev.x||MX:0,by=inBasket?(elev.y!=null?elev.y:elev.by):0;
  if(inBasket)drawBasketBack(bx,by-cy);
@@ -1690,6 +1697,7 @@ function bank(){const dc=runCoins-bankC,dg=runGems-bankG,dk=runCandy-bankK,e=Mat
  save.coins+=e;earnedC+=e;save.gems+=dg;save.candy+=dk;save.stats.coins+=e;save.stats.candy+=dk;bankC=runCoins;bankG=runGems;bankK=runCandy;
  if(mode!=='boss'&&runFloor>save.best){save.best=runFloor;newBest=true;}persist();}
 function showOver(win){
+ if(win&&boss&&boss.def.secret&&portalSnap){bank();const b=boss.def,first=!save.bossClear[boss.st],mm=first?2:1;save.coins+=b.reward[0]*mm;save.gems+=b.reward[1]*mm;save.bossClear[boss.st]=true;save.stats.boss++;if(!save.breeds.includes('shifter'))save.breeds.push('shifter');persist();setTimeout(()=>toast('🎉 비밀 고양이 변신냥 획득! 🪙'+b.reward[0]*mm+' 💎'+b.reward[1]*mm),400);state='resume';setTimeout(resumeFromPortal,0);return;}
  bank();state='over';overT=0;victory=!!win;let bonus='';
  if(win&&boss&&boss.def.secret&&!save.breeds.includes('shifter')){save.breeds.push('shifter');persist();runUnlocks.push('❓변신냥 (비밀 고양이!)');setTimeout(()=>toast('🎉 비밀 고양이 변신냥 획득!'),300);}
  if(win){const b=boss.def,first=!save.bossClear[boss.st],m=first?2:1;save.coins+=b.reward[0]*m;save.gems+=b.reward[1]*m;earnedC+=b.reward[0]*m;save.bossClear[boss.st]=true;save.stats.boss++;persist();bonus=first?' (첫 클리어 2배!)':'';sfx('buy');}
@@ -1721,7 +1729,7 @@ const ACT={
  play:()=>{sfx('click');startGame('normal');},
  closeModal:()=>{sfx('click');closeModal();},
  pause:()=>togglePause(),resume:()=>togglePause(),
- quit:()=>{bank();if(VS)vsLeave();goHome();},retry:()=>{sfx('click');if(mode==='versus'){vsRematch();return;}if(boss)startBoss(boss.st);else startGame(mode);},home:()=>{sfx('click');if(VS)vsLeave();const rb=document.querySelector('#over [data-act="retry"]');if(rb)rb.textContent='다시하기';goHome();},
+ quit:()=>{bank();if(VS)vsLeave();goHome();},retry:()=>{sfx('click');if(mode==='versus'){vsRematch();return;}if(boss&&boss.def.secret){const m=portalSnap?portalSnap.mode:'normal';portalSnap=null;startGame(m);return;}if(boss)startBoss(boss.st);else startGame(mode);},home:()=>{sfx('click');if(VS)vsLeave();const rb=document.querySelector('#over [data-act="retry"]');if(rb)rb.textContent='다시하기';goHome();},
  revive:()=>revive(),
  mode:a=>{sfx('click');startGame(a);},
  boss:a=>{sfx('click');startBoss(+a);},
@@ -2005,6 +2013,7 @@ window.addEventListener('keydown',e=>{
   if(state==='ready'||state==='play')press();
   else if(state==='over'&&overT>.6&&!e.repeat)ACT.retry();
   else if(state==='paused'&&!e.repeat)togglePause();}
+ else if(k==='KeyE'||k==='ShiftLeft'||k==='ShiftRight'){if(state==='play')useSkill();}
  else if(k==='Escape'||k==='KeyP'){if(['play','ready','paused'].includes(state))togglePause();else if($('modal').classList.contains('on'))closeModal();}
 });
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&(state==='play'||state==='ready'))togglePause();if(AC){if(document.hidden)AC.suspend();else AC.resume();}});
@@ -2138,8 +2147,22 @@ Object.assign(ZD,{
  throne:{bpm:70,root:60,sc:'major',prog:[0,4,5,3,0,4,3,4],bar:8,f(s,t,c){if(s%8===0){for(const m of c.ch){I.organ(mtof(m),t,c.barT,.045);I.brass(mtof(m),t,c.barT*.8,.035);}I.choir(mtof(c.ch[0]+12),t,c.barT,.06);I.bell(mtof(c.ch[0]-12),t,.08,4);}
   if(s%8===0)drum('timp',t,1);if(s%8===6)drum('timp',t,0);if(s%32===0)drum('crash',t);const fan=[0,-1,0,0,4,-1,2,4,7,-1,-1,4,7,-1,9,7];const m=fan[s%16];if(m>=0)I.brass(mtof(c.n(m)+12),t,c.e*1.5,.06);}}});
 
-let shiftB='shifter',shiftT=0,portalOn=false,portalGo=false;
-function enterPortal(){bank();sfx('zone');vib(80);setTimeout(()=>{startBoss(3);const z=$('zone');z.innerHTML='🌀 변신 포탈!<br><span style="font-size:55%">변신 대마왕을 쓰러뜨리면 비밀 고양이!</span>';z.style.display='block';zoneT=2.6;},0);}
+let shiftB='shifter',shiftT=0,portalOn=false,portalGo=false,skillCD=0,debris=[],sring=null,skillShown='';
+function useSkill(){if(!save.skillBlast||state!=='play'||!cat||cat.mode==='dead'||skillCD>0)return;skillCD=25;const c=cat,R=100,keep=[];
+ for(const h of hz){let hit=false;if(h.type==='spikes'||h.type==='snow')hit=h.y2>c.y-R&&h.y1<c.y+R;else if(h.type==='laser')hit=Math.abs(h.y-c.y)<R;else if(h.type==='cannon'||h.type==='portal')hit=false;else hit=Math.hypot(h.x-c.x,h.y-c.y)<R;
+  if(!hit){keep.push(h);continue;}const hx=h.x!=null?h.x:(h.side==='L'?LX+6:RX-6),hy=h.y!=null?h.y:(h.y1+h.y2)/2,dx=hx-c.x,dy=hy-c.y,L=Math.hypot(dx,dy)||1;
+  const img=h.type==='saw'?SAW[0]:h.type==='bird'?BIRD[0]:h.type==='bat'?BAT[0]:h.type==='ghost'?GHOST:h.type==='spikes'?(h.side==='L'?SPIKE:SPIKEF):null;
+  if(img){const n=h.type==='spikes'?Math.max(1,Math.floor((h.y2-h.y1)/12)):1;for(let k=0;k<n;k++)debris.push({img,x:hx,y:h.type==='spikes'?h.y1+k*12:hy,vx:dx/L*320+rnd(-60,60),vy:dy/L*220-180+rnd(-60,40),rot:0,vr:rnd(-14,14),life:1.1});}
+  burst(hx,hy,10,['#ffffff','#8ab8ff','#6affff'],120,.5,0);}
+ hz=keep;if(boss)shots=shots.filter(s=>{if(Math.hypot(s.x-c.x,s.y-c.y)<R*1.4){burst(s.x,s.y,6,['#ffffff','#6affff'],60,.4,0);return false;}return true;});
+ sring={x:c.x,y:c.y,t:0};shake=.4;sfx('boom');vib(120);burst(c.x,c.y,40,['#ffffff','#8ab8ff','#ffe14a','#6affff'],170,.7,0);}
+function updSkillUI(){const b=$('skillBtn'),br=BREED[save.breed],on=!!save.skillBlast&&['play','count','ready'].includes(state),k=on?(skillCD>0?String(Math.ceil(skillCD)):'go'):'off';if(k===skillShown)return;skillShown=k;
+ b.style.display=on?'flex':'none';if(!on)return;b.classList.toggle('cd',skillCD>0);b.textContent=skillCD>0?k:'💥';}
+let portalSnap=null;
+ACT.skill=()=>useSkill();
+function resumeFromPortal(){const s=portalSnap;portalSnap=null;resetRun(s.mode);runFloor=s.runFloor;const y=s.y-40;cat.y=y;cat.x=LX+CLING;cat.mode='wall';cat.side='L';cat.inv=2.5;camY=y-H*.58;genY=y+60;calm.push([y-260,y+120]);lastZone=zoneOf(runFloor)[1];portalOn=true;portalGo=true;generate();state='play';enterHud();
+ const z=$('zone');z.innerHTML='🏆 변신 대마왕 격파!<br><span style="font-size:55%">변신냥 획득! 이어서 올라가요</span>';z.style.display='block';zoneT=3;sfx('buy');}
+function enterPortal(){portalSnap={mode,runFloor,y:cat.y};bank();sfx('zone');vib(80);setTimeout(()=>{startBoss(3);const z=$('zone');z.innerHTML='🌀 변신 포탈!<br><span style="font-size:55%">변신 대마왕을 쓰러뜨리면 비밀 고양이!</span>';z.style.display='block';zoneT=2.6;},0);}
 function drawPortal(x,y){const p=.5+.5*Math.sin(gt*5);ctx.fillStyle='rgba(160,80,255,'+(.18+.1*p)+')';ctx.beginPath();ctx.arc(x,y,24,0,7);ctx.fill();ctx.fillStyle='#1a0a2e';ctx.beginPath();ctx.arc(x,y,14,0,7);ctx.fill();
  for(let k=0;k<3;k++)for(let a=0;a<20;a++){const t=a/20*Math.PI*2+gt*(2+k)*(k%2?-1:1),r=5+k*4;px(x+Math.cos(t)*r,y+Math.sin(t)*r,1,1,['#c88aff','#ff6ac8','#6affff'][k]);}
  for(let a=0;a<32;a++){const t=a/32*Math.PI*2+gt*1.5,h=(a/32+gt*.2)%1;px(x+Math.cos(t)*17,y+Math.sin(t)*17,2,2,'hsl('+Math.round(h*360)+',90%,65%)');}
@@ -2159,7 +2182,8 @@ function tick(dt){
  else if(state==='over')overT+=dt;
  else if(state==='spect'||state==='vscount')vsTick(dt);
  else if(state==='count')tickCount(dt);
- if(state!=='paused'){updParts(dt);updCrane(dt);}
+ if(state!=='paused'){updParts(dt);updCrane(dt);for(const d of debris){d.vy+=520*dt;d.x+=d.vx*dt;d.y+=d.vy*dt;d.rot+=d.vr*dt;d.life-=dt;}debris=debris.filter(d=>d.life>0);if(sring)sring.t+=dt*2.2;if(sring&&sring.t>1)sring=null;}
+ if(['play','count','ready','dying','spect'].includes(state)||state==='home')updSkillUI();
  prewarmBig();
  if(state!=='home'){const top=Math.ceil(-camY/SEG)+1;for(let i=top;i<=top+2;i++)if(!segC.has(i)&&i>=0){getSeg(i);break;}}
  if(zoneT>0){zoneT-=dt;if(zoneT<=0)$('zone').style.display='none';}
