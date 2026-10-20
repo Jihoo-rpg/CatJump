@@ -325,10 +325,13 @@ const DEF={coins:300,gems:5,candy:0,best:0,breeds:['cheese','mackerel'],outfits:
  stats:{jumps:0,dj:0,coins:0,candy:0,runs:0,boss:0,hw:0,vs:0,vsWin:0},claimed:[],attendDay:0,attendDate:'',giftAt:0,starter:false,noticeSeen:0,fcode:'',friends:[],skills:[],slots:[null,null],
  items:{shield:0},autoShield:true,doubleNext:false,up:{glove:0,shoes:0,magnet:0,luck:0},pet:{lv:1,exp:0,name:'아기냥'},bossClear:[false,false,false]};
 const save=JSON.parse(JSON.stringify(DEF));
-try{let s=JSON.parse(localStorage.getItem(SK)||'null');
+let TAMPER=false;
+function canonJ(v){if(Array.isArray(v))return'['+v.map(canonJ).join(',')+']';if(v&&typeof v==='object')return'{'+Object.keys(v).filter(k=>k!=='_sig').sort().map(k=>JSON.stringify(k)+':'+canonJ(v[k])).join(',')+'}';return JSON.stringify(v===undefined?null:v);}
+function saveSig(o){const str='nj~'+canonJ(o)+'~meow';let h=0x811c9dc5;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}return h.toString(36);}
+try{let s=JSON.parse(localStorage.getItem(SK)||'null');if(s&&s._sig&&s._sig!==saveSig(s))TAMPER=true;
  if(!s){const o=JSON.parse(localStorage.getItem('nyangjump_save_v1')||'null');if(o)s={coins:o.coins,gems:o.gems,best:o.best,breeds:o.breeds,outfits:o.outfits,breed:o.breed,outfit:o.outfit,mute:o.mute};}
  if(s&&typeof s==='object'){for(const k in s){if(DEF[k]&&typeof DEF[k]==='object'&&!Array.isArray(DEF[k]))Object.assign(save[k],s[k]);else if(s[k]!==undefined)save[k]=s[k];}}}catch(e){}
-let onPersist=null;function persist(){save._t=Date.now();try{localStorage.setItem(SK,JSON.stringify(save));}catch(e){}if(onPersist)onPersist();}
+let onPersist=null;function persist(){save._t=Date.now();delete save._sig;try{save._sig=saveSig(JSON.parse(JSON.stringify(save)));localStorage.setItem(SK,JSON.stringify(save));}catch(e){}if(onPersist)onPersist();}
 
 /* ================= 고양이 품종 ================= */
 const BREEDS=[
@@ -1581,7 +1584,7 @@ let DB=null,USER=null,UID=null;
 async function initOnline(){if(FB){DB=fbDB();if(!save.uid){save.uid=Array.from({length:16},()=>'abcdefghijklmnopqrstuvwxyz0123456789'[Math.random()*36|0]).join('');persist();}UID=save.uid;ROOM=fbRoom('lobby');lobbyInit();return;}try{if(!window.claude||typeof window.claude.use!=='function')return;DB=await window.claude.use('db');USER=await window.claude.use('user');if(USER&&USER.id)UID=await USER.id();ROOM=await window.claude.use('room');if(ROOM)lobbyInit();}catch(e){DB=null;}}
 /* ================= 랭킹 1등 교체 알림 ================= */
 let topIds=null;
-async function checkTop(){if(!DB)return;try{const s=await DB.collection('ranking').orderBy('best','desc').limit(3).get();const docs=s.docs.slice(0,3),ids=docs.map(d=>d.id);
+async function checkTop(){if(!DB)return;try{const s=await DB.collection('ranking').orderBy('best','desc').limit(6).get();const docs=s.docs.filter(d=>!isBannedName(d.id)&&!isBannedName((d.data()||{}).nick)).slice(0,3),ids=docs.map(d=>d.id);
  if(topIds===null){topIds=ids;return;}let r=-1;for(let k=0;k<ids.length;k++){if(ids[k]!==topIds[k]){const was=topIds.indexOf(ids[k]);if(was===-1||was>k){r=k;break;}}}topIds=ids;if(r<0)return;
  const v=docs[r].data()||{};showNewKing(typeof v.nick==='string'?v.nick.slice(0,10):'냥이',Math.max(0,Math.floor(Number(v.best)||0)),BREED[v.breed]?v.breed:'cheese',OUTFIT[v.outfit]?v.outfit:'none',docs[r].id===UID,r);}catch(e){}}
 function showNewKing(nick,best,breed,outfit,me,rank){const el=$('crown');rank=rank||0;const RT=['👑 새로운 1등 탄생! 👑','🥈 새로운 2등! 🥈','🥉 새로운 3등! 🥉'],RC=['#ffd23f','#d8e0f0','#e8a060'];
@@ -1600,7 +1603,7 @@ async function loadRank(){
  try{await submitScore();const s=await DB.collection('ranking').orderBy('best','desc').limit(50).get();
   if(!$('rankBox'))return;
   if(!s.docs.length){$('rankBox').innerHTML='<div class="note">아직 아무도 기록이 없어요. 첫 번째 주인공이 되어 보세요!</div>';return;}
-  let html='';const rows=s.docs.map(d=>{let bb=Math.max(0,Math.floor(Number((d.data()||{}).best)||0));if(bb>=100000){bb=22000;if(FB)fbReq('ranking/'+fbKey(d.id)+'/best','PUT',22000).catch(()=>{});}return{d,bb};}).sort((a,b)=>b.bb-a.bb);rows.forEach(({d,bb},i)=>{const v=d.data()||{},best=bb,nick=typeof v.nick==='string'?v.nick.slice(0,10):'냥이',
+  let html='';const rows=s.docs.filter(d=>{const v=d.data()||{};if(isBannedName(d.id)||isBannedName(v.nick)){if(FB)fbReq('ranking/'+fbKey(d.id),'DELETE').catch(()=>{});return false;}return true;}).map(d=>{let bb=Math.max(0,Math.floor(Number((d.data()||{}).best)||0));if(bb>=100000){bb=22000;if(FB)fbReq('ranking/'+fbKey(d.id)+'/best','PUT',22000).catch(()=>{});}return{d,bb};}).sort((a,b)=>b.bb-a.bb);rows.forEach(({d,bb},i)=>{const v=d.data()||{},best=bb,nick=typeof v.nick==='string'?v.nick.slice(0,10):'냥이',
    b=BREED[v.breed]?v.breed:'cheese',o=OUTFIT[v.outfit]?v.outfit:'none',me=d.id===UID;
    html+='<div class="rk'+(me?' me':'')+'"><span class="no">'+(i<3?['🥇','🥈','🥉'][i]:i+1)+'</span><img src="'+headURL(b,o)+'" alt=""><span class="nn">'+esc(nick)+(me?' (나)':'')+'</span><b>'+fmt(best)+'m</b></div>';});
   rankAt=Date.now();if(html!==rankCache){rankCache=html;$('rankBox').innerHTML=html;}
@@ -1723,7 +1726,7 @@ const ELEV={250:{c:500,g:5},400:{c:1000,g:10},650:{c:1500,g:15,need:1000},1000:{
 function enterHud(){hudF=hudC=hudG=hudK=-1;show(null);$('hbst').textContent='BEST '+fmt(save.best)+'m';
  $('modeTag').textContent={normal:'',hard:'🔥 하드 모드',halloween:'🎃 할로윈 모드',boss:'👹 보스전'}[mode]||'';
  $('bossbar').style.display=boss?'block':'none';if(boss)$('bossnm').textContent=boss.def.name;$('zone').style.display='none';updHud();}
-function startGame(m){curPanel=null;
+function startGame(m){curPanel=null;if(BANNED_DEV)return;
  resetRun(m);generate();save.stats.runs++;persist();startCount();}
 function startBoss(i){curPanel=null;resetRun('boss');bossHearts=3;const d=BOSSES[i];boss={st:i,def:d,hp:d.hp,max:d.hp,x:MX,y:0,t:0,atk:2.6,orbT:1.5,flash:0,dead:false,deadT:0,n:0};
  generate();save.stats.runs++;persist();startCount();}
@@ -1788,7 +1791,7 @@ const ACT={
  starter:()=>{if(save.starter)return;save.starter=true;giveReward({c:500,g:5});save.items.shield+=3;persist();sfx('buy');toast('스타터 패키지를 받았어요!');rerender();},
  tog:a=>{save[a]=!save[a];persist();sfx('click');rerender();},
  reset:()=>{if(!resetArm){resetArm=true;rerender();return;}try{localStorage.removeItem(SK);}catch(e){}const fresh=JSON.parse(JSON.stringify(DEF));for(const k in fresh)save[k]=fresh[k];persist();resetArm=false;sprC.clear();urlC.clear();toast('데이터를 초기화했어요');rerender();},
- nick:()=>{const v=($('nickIn').value||'').trim().slice(0,10);save.nick=v;persist();toast('닉네임을 저장했어요');submitScore();rerender();},
+ nick:()=>{const v=($('nickIn').value||'').trim().slice(0,10);if(isBannedName(v)){toast('사용할 수 없는 닉네임이에요');return;}save.nick=v;persist();toast('닉네임을 저장했어요');submitScore();rerender();},
  attend:()=>{if(save.attendDate===today())return;const r=ATT[save.attendDay];giveReward(r);save.attendDate=today();save.attendDay=(save.attendDay+1)%7;persist();sfx('buy');toast('출석 보상을 받았어요!');rerender();},
  buy:a=>{const P={g5:['c',1000,()=>save.gems+=5],g12:['c',2200,()=>save.gems+=12],sh:['c',150,()=>save.items.shield++],dbl:['g',3,()=>save.doubleNext=true],k10:['g',5,()=>save.candy+=10],c1500:['g',10,()=>save.coins+=1500]}[a];
   if(!P||!spend(P[0],P[1]))return;P[2]();persist();sfx('buy');toast('구매 완료!');rerender();},
@@ -1987,6 +1990,12 @@ Object.assign(ACT,{
 const SESS='nyangjump_session';
 let session=null,accTab='login',cloudT=null,accBusy=false;
 try{session=JSON.parse(localStorage.getItem(SESS)||'null');}catch(e){}
+const BAN_WORDS=['grayson'];
+const isBannedName=x=>BAN_WORDS.some(w=>String(x||'').toLowerCase().includes(w));
+let BANNED_DEV=false;try{BANNED_DEV=localStorage.getItem('nyangjump_ban')==='1';}catch(e){}
+function banDevice(){BANNED_DEV=true;try{localStorage.setItem('nyangjump_ban','1');localStorage.removeItem(SESS);}catch(e){}session=null;state='home';if($('banScreen'))return;const d=document.createElement('div');d.id='banScreen';
+ d.style.cssText='position:absolute;inset:0;z-index:50;background:rgba(10,0,10,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:calc(var(--u)*10);font-size:calc(var(--u)*9);gap:calc(var(--u)*4)';
+ d.innerHTML='<div style="font-size:calc(var(--u)*26)">🚫</div><b>이용이 정지된 기기예요</b><small style="opacity:.75;font-size:calc(var(--u)*6.5)">규칙 위반(핵 사용)으로 이 기기에서는 냥냥 점프를 할 수 없어요.</small>';stage.appendChild(d);}
 function applySave(s){const fresh=JSON.parse(JSON.stringify(DEF));for(const k in fresh)save[k]=fresh[k];
  for(const k in s){if(DEF[k]&&typeof DEF[k]==='object'&&!Array.isArray(DEF[k]))Object.assign(save[k],s[k]);else if(s[k]!==undefined)save[k]=s[k];}
  if(!BREED[save.breed])save.breed='cheese';if(!OUTFIT[save.outfit])save.outfit='none';if(!save.fcode)save.fcode=mkCode(6);}
@@ -2007,6 +2016,8 @@ async function accLogin(){
  if(!id||!pw){toast('아이디와 비밀번호를 입력하세요');return;}
  accBusy=true;try{const u=await fbReq('users/'+fbKey(id),'GET');
   if(!u||!u.salt){toast('없는 아이디예요');return;}
+  try{if(await fbReq('bans/'+fbKey(id),'GET')){banDevice();return;}}catch(e){}
+  if(isBannedName(id)||isBannedName(u.save&&u.save.nick)){banDevice();return;}
   const h=await hashPw(pw,u.salt);if(h!==u.hash){toast('비밀번호가 틀렸어요');return;}
   try{localStorage.setItem(SK+'_guest',JSON.stringify(save));}catch(e){}
   if(u.save)applySave(u.save);setSession(fbKey(id),h);persist();sfx('buy');toast('로그인했어요! 어서 와요 '+(save.nick||id));
@@ -2016,6 +2027,7 @@ async function accLogin(){
 async function accSignup(){
  if(accBusy)return;const id=normId($('accId').value),pw=$('accPw').value||'',nick=($('accNick').value||'').trim().slice(0,10);
  if(!/^[a-z0-9_]{4,12}$/.test(id)){toast('아이디는 영어 소문자·숫자 4~12자');return;}
+ if(isBannedName(id)||isBannedName(nick)){toast('사용할 수 없는 아이디예요');return;}
  if(pw.length<4){toast('비밀번호는 4자 이상');return;}
  if(!nick){toast('닉네임을 입력하세요');return;}
  accBusy=true;try{const ex=await fbReq('users/'+id,'GET');if(ex){toast('이미 있는 아이디예요');return;}
@@ -2046,7 +2058,7 @@ Object.assign(ACT,{atab:a=>{accTab=a;rerender();},alogin:()=>accLogin(),asignup:
  aguest:()=>{try{localStorage.setItem('nyangjump_guest','1');}catch(e){}closeModal();}});
 
 /* ================= 입력 ================= */
-function press(){audio();
+function press(){if(BANNED_DEV)return;audio();
  if(state==='ready'){state='play';$('hint').style.display='none';jump();}
  else if(state==='play'){if(cat&&cat.mode==='ground')$('hint').style.display='none';jump();}}
 stage.addEventListener('pointerdown',e=>{if(e.target!==canvas)return;e.preventDefault();press();});
@@ -2252,7 +2264,7 @@ function skillsHTML(){return Object.keys(SKILLS).map(id=>{const sk=SKILLS[id],o=
  return '<div class="li'+(o?'':' locked')+'"><span class="em">'+sk.e+'</span><div class="tx"><b>'+sk.n+(o?'':' 🔒')+'</b><small>'+sk.d+' · 쿨타임 '+skillCd(id)+'초'+(o?'':' · 얻는 법: '+(typeof sk.how==='function'?sk.how():sk.how))+'</small></div>'+
   (o?'<button class="gb sm'+(sl[0]===id?' green':' cream')+'" data-act="slot" data-arg="'+id+':0">E</button><button class="gb sm'+(sl[1]===id?' green':' cream')+'" data-act="slot" data-arg="'+id+':1">R</button>':'')+'</div>';}).join('')+awakenHTML();}
 function skillCd(id){return id==='rocket'&&save.rocketAwake?25:SKILLS[id].cd;}
-function syncSkills(){if(save.best>=100000){save.best=22000;persist();}if((save.best>=2500||save.skillBlast)&&!ownSkill('blast')){save.skillBlast=true;giveSkill('blast');}if(!save.slots)save.slots=[null,null];let ch=false;for(const id of save.skills||[]){if(!save.slots.includes(id)){const e=save.slots.indexOf(null);if(e>=0){save.slots[e]=id;ch=true;}}}if(ch)persist();checkRocket();}
+function syncSkills(){if(!save.p1){if(save.coins>=9999)save.coins=0;if(save.gems>=9999)save.gems=0;save.p1=1;persist();}if(save.best>=100000){save.best=22000;persist();}if((save.best>=2500||save.skillBlast)&&!ownSkill('blast')){save.skillBlast=true;giveSkill('blast');}if(!save.slots)save.slots=[null,null];let ch=false;for(const id of save.skills||[]){if(!save.slots.includes(id)){const e=save.slots.indexOf(null);if(e>=0){save.slots[e]=id;ch=true;}}}if(ch)persist();checkRocket();}
 function awakenHTML(){if(!ownSkill('rocket'))return'';if(save.rocketAwake)return '<div class="li" style="background:linear-gradient(90deg,#8a1a0a,#ff8a3a);color:#fff"><span class="em">🔥</span><div class="tx"><b>대포 각성 완료!</b><small style="color:#ffe8d0">75m 위로 발사 · 쿨타임 25초</small></div></div>';
  const ok=save.best>=10000&&save.gems>=200;return '<div class="li" style="background:linear-gradient(90deg,#3a0a0a,#a8301a);color:#fff"><span class="em">🔥</span><div class="tx"><b>대포 발사 각성</b><small style="color:#ffd8c8">25m 더 높이(75m) · 쿨타임 -5초(25초)<br>조건: 최고 기록 10000m ('+fmt(save.best)+'m) + 💎200</small></div><button class="gb sm orange" data-act="awaken"'+(ok?'':' disabled')+'>'+ICH('g')+'200</button></div>';}
 function makePumpkinWall(){const c=mk(16,48),g=c.getContext('2d'),P=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(x,y,w,h);};
@@ -2312,9 +2324,18 @@ resize();fillIcons();
  g.drawImage(GHOST,40,8);g.drawImage(BAT[0],120,10);g.drawImage(BAT[1],200,20);
  try{$('bannerBtn').style.backgroundImage='url('+c.toDataURL()+')';}catch(e){}})();
 resetRun('normal');grantPast();goHome();
+if(TAMPER){if(session&&FB)fbReq('bans/'+fbKey(session.id),'PUT',true).catch(()=>{});banDevice();}
+else if(BANNED_DEV||(session&&isBannedName(session.id))||isBannedName(save.nick))banDevice();
+else if(session&&FB)fbReq('bans/'+fbKey(session.id),'GET').then(b=>{if(b)banDevice();}).catch(()=>{});
+/* 개발자 도구 막기 */
+document.addEventListener('contextmenu',e=>e.preventDefault());
+window.addEventListener('keydown',e=>{const k=(e.key||'').toLowerCase(),mod=e.metaKey||e.ctrlKey;
+ if(e.key==='F12'||(mod&&e.altKey&&['i','j','c','u'].includes(k))||(mod&&e.shiftKey&&['i','j','c'].includes(k))||(mod&&k==='u')||(mod&&k==='s')){e.preventDefault();e.stopImmediatePropagation();toast('🚫 개발자 도구는 사용할 수 없어요');}},true);
+setInterval(()=>{const open=(window.outerWidth-window.innerWidth>200)||(window.outerHeight-window.innerHeight>220);let d=$('dtBlock');
+ if(open){if(!d){d=document.createElement('div');d.id='dtBlock';d.style.cssText='position:absolute;inset:0;z-index:49;background:rgba(10,0,10,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;gap:calc(var(--u)*3);font-size:calc(var(--u)*9)';d.innerHTML='<div style="font-size:calc(var(--u)*22)">🛑</div><b>개발자 도구를 닫아 주세요</b><small style="opacity:.7;font-size:calc(var(--u)*6.5)">닫으면 다시 할 수 있어요</small>';stage.appendChild(d);}
+  if(state==='play'||state==='ready')togglePause();}else if(d)d.remove();},700);
 initOnline().then(accInit).then(()=>{checkTop();setInterval(checkTop,15000);}).catch(()=>{});
 requestAnimationFrame(frame);
-window.__nj={get state(){return state;},get cat(){return cat;},get hz(){return hz;},get boss(){return boss;},tick,render,press,startGame,startBoss,startElevator,revive,openPanel,ACT,save,get runFloor(){return runFloor;},catSprite,bossSprite};
 })();
 </script>
 </body>
