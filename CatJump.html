@@ -607,7 +607,7 @@ function unlockMS(b){save.breeds.push(b.id);persist();runUnlocks.push(b.name);
  const z=$('zone');z.innerHTML='🎉 '+b.ms+'m 달성!<br><span style="font-size:58%;color:#fff">특별 고양이 「'+b.name+'」 획득!</span>';z.style.display='block';zoneT=3.2;
  const f=FX[b.fx];for(let k=0;k<70;k++){const a=Math.random()*Math.PI*2,s=40+Math.random()*120;parts.push({x:cat.x,y:cat.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-40,life:1.2,max:1.2,col:(f?f.c:['#ffe14a'])[k%(f?f.c.length:1)],sz:2,g:120});}
  sfx('buy');setTimeout(()=>sfx('gem'),250);vib(80);}
-function grantPast(){if(save.best>=2500&&!save.skillBlast){save.skillBlast=true;persist();}if(save.skillBlast&&!ownSkill('blast'))giveSkill('blast');const got=[];for(const b of MS_BREEDS())if(save.best>=b.ms&&!save.breeds.includes(b.id)){save.breeds.push(b.id);got.push(b.name);}if(got.length){persist();setTimeout(()=>toast('🎁 기록 보상 고양이 '+got.length+'마리 지급!'),600);}}
+function grantPast(){if(save.best>=100000){save.best=22000;persist();}if(save.best>=2500&&!save.skillBlast){save.skillBlast=true;persist();}if(save.skillBlast&&!ownSkill('blast'))giveSkill('blast');const got=[];for(const b of MS_BREEDS())if(save.best>=b.ms&&!save.breeds.includes(b.id)){save.breeds.push(b.id);got.push(b.name);}if(got.length){persist();setTimeout(()=>toast('🎁 기록 보상 고양이 '+got.length+'마리 지급!'),600);}}
 function overBadge(){const t=[];if(newBest)t.push('🎉 신기록!');if(runUnlocks.length)t.push('🐱 새 고양이: '+runUnlocks.join(', '));const e=$('onew');e.innerHTML=t.join('<br>');e.style.display=t.length?'block':'none';}
 function catSprite(pose,fr,bid,oid){
  const key=pose+fr+'|'+bid+'|'+oid;let c=sprC.get(key);if(c)return c;
@@ -1600,7 +1600,7 @@ async function loadRank(){
  try{await submitScore();const s=await DB.collection('ranking').orderBy('best','desc').limit(50).get();
   if(!$('rankBox'))return;
   if(!s.docs.length){$('rankBox').innerHTML='<div class="note">아직 아무도 기록이 없어요. 첫 번째 주인공이 되어 보세요!</div>';return;}
-  let html='';s.docs.forEach((d,i)=>{const v=d.data()||{},best=Math.max(0,Math.floor(Number(v.best)||0)),nick=typeof v.nick==='string'?v.nick.slice(0,10):'냥이',
+  let html='';const rows=s.docs.map(d=>{let bb=Math.max(0,Math.floor(Number((d.data()||{}).best)||0));if(bb>=100000){bb=22000;if(FB)fbReq('ranking/'+fbKey(d.id)+'/best','PUT',22000).catch(()=>{});}return{d,bb};}).sort((a,b)=>b.bb-a.bb);rows.forEach(({d,bb},i)=>{const v=d.data()||{},best=bb,nick=typeof v.nick==='string'?v.nick.slice(0,10):'냥이',
    b=BREED[v.breed]?v.breed:'cheese',o=OUTFIT[v.outfit]?v.outfit:'none',me=d.id===UID;
    html+='<div class="rk'+(me?' me':'')+'"><span class="no">'+(i<3?['🥇','🥈','🥉'][i]:i+1)+'</span><img src="'+headURL(b,o)+'" alt=""><span class="nn">'+esc(nick)+(me?' (나)':'')+'</span><b>'+fmt(best)+'m</b></div>';});
   rankAt=Date.now();if(html!==rankCache){rankCache=html;$('rankBox').innerHTML=html;}
@@ -2252,7 +2252,7 @@ function skillsHTML(){return Object.keys(SKILLS).map(id=>{const sk=SKILLS[id],o=
  return '<div class="li'+(o?'':' locked')+'"><span class="em">'+sk.e+'</span><div class="tx"><b>'+sk.n+(o?'':' 🔒')+'</b><small>'+sk.d+' · 쿨타임 '+skillCd(id)+'초'+(o?'':' · 얻는 법: '+(typeof sk.how==='function'?sk.how():sk.how))+'</small></div>'+
   (o?'<button class="gb sm'+(sl[0]===id?' green':' cream')+'" data-act="slot" data-arg="'+id+':0">E</button><button class="gb sm'+(sl[1]===id?' green':' cream')+'" data-act="slot" data-arg="'+id+':1">R</button>':'')+'</div>';}).join('')+awakenHTML();}
 function skillCd(id){return id==='rocket'&&save.rocketAwake?25:SKILLS[id].cd;}
-function syncSkills(){if((save.best>=2500||save.skillBlast)&&!ownSkill('blast')){save.skillBlast=true;giveSkill('blast');}if(!save.slots)save.slots=[null,null];let ch=false;for(const id of save.skills||[]){if(!save.slots.includes(id)){const e=save.slots.indexOf(null);if(e>=0){save.slots[e]=id;ch=true;}}}if(ch)persist();checkRocket();}
+function syncSkills(){if(save.best>=100000){save.best=22000;persist();}if((save.best>=2500||save.skillBlast)&&!ownSkill('blast')){save.skillBlast=true;giveSkill('blast');}if(!save.slots)save.slots=[null,null];let ch=false;for(const id of save.skills||[]){if(!save.slots.includes(id)){const e=save.slots.indexOf(null);if(e>=0){save.slots[e]=id;ch=true;}}}if(ch)persist();checkRocket();}
 function awakenHTML(){if(!ownSkill('rocket'))return'';if(save.rocketAwake)return '<div class="li" style="background:linear-gradient(90deg,#8a1a0a,#ff8a3a);color:#fff"><span class="em">🔥</span><div class="tx"><b>대포 각성 완료!</b><small style="color:#ffe8d0">75m 위로 발사 · 쿨타임 25초</small></div></div>';
  const ok=save.best>=10000&&save.gems>=200;return '<div class="li" style="background:linear-gradient(90deg,#3a0a0a,#a8301a);color:#fff"><span class="em">🔥</span><div class="tx"><b>대포 발사 각성</b><small style="color:#ffd8c8">25m 더 높이(75m) · 쿨타임 -5초(25초)<br>조건: 최고 기록 10000m ('+fmt(save.best)+'m) + 💎200</small></div><button class="gb sm orange" data-act="awaken"'+(ok?'':' disabled')+'>'+ICH('g')+'200</button></div>';}
 function makePumpkinWall(){const c=mk(16,48),g=c.getContext('2d'),P=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(x,y,w,h);};
