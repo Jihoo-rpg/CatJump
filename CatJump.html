@@ -1990,10 +1990,10 @@ Object.assign(ACT,{
 const SESS='nyangjump_session';
 let session=null,accTab='login',cloudT=null,accBusy=false;
 try{session=JSON.parse(localStorage.getItem(SESS)||'null');}catch(e){}
-const BAN_WORDS=[];
+const BAN_WORDS=['baka','mommie','ak47'];
 const isBannedName=x=>BAN_WORDS.some(w=>String(x||'').toLowerCase().includes(w));
-let BANNED_DEV=false;try{localStorage.removeItem('nyangjump_ban');}catch(e){}
-function banDevice(){return;BANNED_DEV=true;try{localStorage.setItem('nyangjump_ban','1');localStorage.removeItem(SESS);}catch(e){}session=null;state='home';if($('banScreen'))return;const d=document.createElement('div');d.id='banScreen';
+let BANNED_DEV=false;try{localStorage.removeItem('nyangjump_ban');BANNED_DEV=localStorage.getItem('nyangjump_ban2')==='1';}catch(e){}
+function banDevice(){BANNED_DEV=true;try{localStorage.setItem('nyangjump_ban2','1');localStorage.removeItem(SESS);}catch(e){}session=null;state='home';if($('banScreen'))return;const d=document.createElement('div');d.id='banScreen';
  d.style.cssText='position:absolute;inset:0;z-index:50;background:rgba(10,0,10,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:calc(var(--u)*10);font-size:calc(var(--u)*9);gap:calc(var(--u)*4)';
  d.innerHTML='<div style="font-size:calc(var(--u)*26)">🚫</div><b>이용이 정지된 기기예요</b><small style="opacity:.75;font-size:calc(var(--u)*6.5)">규칙 위반(핵 사용)으로 이 기기에서는 냥냥 점프를 할 수 없어요.</small>';stage.appendChild(d);}
 function applySave(s){const fresh=JSON.parse(JSON.stringify(DEF));for(const k in fresh)save[k]=fresh[k];
@@ -2016,7 +2016,7 @@ async function accLogin(){
  if(!id||!pw){toast('아이디와 비밀번호를 입력하세요');return;}
  accBusy=true;try{const u=await fbReq('users/'+fbKey(id),'GET');
   if(!u||!u.salt){toast('없는 아이디예요');return;}
-  try{if(await fbReq('bans/'+fbKey(id),'GET')){banDevice();return;}}catch(e){}
+
   if(isBannedName(id)||isBannedName(u.save&&u.save.nick)){banDevice();return;}
   const h=await hashPw(pw,u.salt);if(h!==u.hash){toast('비밀번호가 틀렸어요');return;}
   try{localStorage.setItem(SK+'_guest',JSON.stringify(save));}catch(e){}
@@ -2327,7 +2327,7 @@ resetRun('normal');grantPast();goHome();
 if(session&&FB)fbReq('bans/'+fbKey(session.id),'DELETE').catch(()=>{});
 if(false){}
 else if(BANNED_DEV||(session&&isBannedName(session.id))||isBannedName(save.nick))banDevice();
-else if(session&&FB)fbReq('bans/'+fbKey(session.id),'GET').then(b=>{if(b)banDevice();}).catch(()=>{});
+
 /* 개발자 도구 막기 */
 document.addEventListener('contextmenu',e=>e.preventDefault());
 window.addEventListener('keydown',e=>{const k=(e.key||'').toLowerCase(),mod=e.metaKey||e.ctrlKey;
