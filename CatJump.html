@@ -1990,10 +1990,10 @@ Object.assign(ACT,{
 const SESS='nyangjump_session';
 let session=null,accTab='login',cloudT=null,accBusy=false;
 try{session=JSON.parse(localStorage.getItem(SESS)||'null');}catch(e){}
-const BAN_WORDS=['grayson'];
+const BAN_WORDS=[];
 const isBannedName=x=>BAN_WORDS.some(w=>String(x||'').toLowerCase().includes(w));
-let BANNED_DEV=false;try{BANNED_DEV=localStorage.getItem('nyangjump_ban')==='1';}catch(e){}
-function banDevice(){BANNED_DEV=true;try{localStorage.setItem('nyangjump_ban','1');localStorage.removeItem(SESS);}catch(e){}session=null;state='home';if($('banScreen'))return;const d=document.createElement('div');d.id='banScreen';
+let BANNED_DEV=false;try{localStorage.removeItem('nyangjump_ban');}catch(e){}
+function banDevice(){return;BANNED_DEV=true;try{localStorage.setItem('nyangjump_ban','1');localStorage.removeItem(SESS);}catch(e){}session=null;state='home';if($('banScreen'))return;const d=document.createElement('div');d.id='banScreen';
  d.style.cssText='position:absolute;inset:0;z-index:50;background:rgba(10,0,10,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:calc(var(--u)*10);font-size:calc(var(--u)*9);gap:calc(var(--u)*4)';
  d.innerHTML='<div style="font-size:calc(var(--u)*26)">🚫</div><b>이용이 정지된 기기예요</b><small style="opacity:.75;font-size:calc(var(--u)*6.5)">규칙 위반(핵 사용)으로 이 기기에서는 냥냥 점프를 할 수 없어요.</small>';stage.appendChild(d);}
 function applySave(s){const fresh=JSON.parse(JSON.stringify(DEF));for(const k in fresh)save[k]=fresh[k];
@@ -2324,7 +2324,8 @@ resize();fillIcons();
  g.drawImage(GHOST,40,8);g.drawImage(BAT[0],120,10);g.drawImage(BAT[1],200,20);
  try{$('bannerBtn').style.backgroundImage='url('+c.toDataURL()+')';}catch(e){}})();
 resetRun('normal');grantPast();goHome();
-if(TAMPER){if(session&&FB)fbReq('bans/'+fbKey(session.id),'PUT',true).catch(()=>{});banDevice();}
+if(session&&FB)fbReq('bans/'+fbKey(session.id),'DELETE').catch(()=>{});
+if(false){}
 else if(BANNED_DEV||(session&&isBannedName(session.id))||isBannedName(save.nick))banDevice();
 else if(session&&FB)fbReq('bans/'+fbKey(session.id),'GET').then(b=>{if(b)banDevice();}).catch(()=>{});
 /* 개발자 도구 막기 */
