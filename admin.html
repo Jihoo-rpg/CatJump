@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>어드민 패널</title>
+<style>
+  :root{ --bg:#0b0d1a; --sf:#151a2e; --el:#1b2140; --tx:#eef1ff; --t2:#9aa3c7; --dv:#262e52; --ac:#5b7cff; --gr:#2cbf7a; --rd:#ff4a6a; --am:#ffc44d; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ background:var(--bg); color:var(--tx); font-family:'Noto Sans KR',system-ui,sans-serif; padding:16px; padding-bottom:80px; }
+  h1{ font-size:22px; margin-bottom:4px; } .sub{ color:var(--t2); font-size:12px; margin-bottom:16px; }
+  .box{ background:var(--sf); border:1px solid var(--dv); border-radius:14px; padding:16px; margin-bottom:14px; max-width:900px; }
+  .box h2{ font-size:15px; margin-bottom:10px; }
+  .row{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:8px; }
+  input,textarea,select{ background:var(--bg); color:var(--tx); border:1px solid var(--dv); border-radius:9px; padding:8px 10px; font:inherit; font-size:13px; }
+  textarea{ width:100%; min-height:38px; font-family:monospace; font-size:12px; }
+  button{ border:0; border-radius:9px; padding:9px 14px; font:inherit; font-size:13px; font-weight:800; cursor:pointer; background:var(--el); color:var(--tx); }
+  button.p{ background:var(--ac); color:#fff; } button.g{ background:var(--gr); color:#04140c; } button.r{ background:var(--rd); color:#fff; }
+  .hint{ color:var(--t2); font-size:11.5px; line-height:1.6; margin-top:6px; }
+  .kv{ display:grid; grid-template-columns:minmax(120px,220px) 1fr auto; gap:6px; align-items:start; padding:6px 0; border-bottom:1px solid var(--dv); }
+  .kv code{ font-size:11.5px; word-break:break-all; color:var(--am); padding-top:8px; }
+  .kv .bt{ display:flex; gap:4px; }
+  .kv .bt button{ padding:7px 9px; font-size:11px; }
+  #gate{ text-align:center; padding:80px 20px; color:var(--t2); }
+  #toast{ position:fixed; left:50%; bottom:20px; transform:translateX(-50%); background:#000c; padding:10px 16px; border-radius:20px; font-size:13px; font-weight:800; opacity:0; transition:.2s; pointer-events:none; }
+  #toast.on{ opacity:1; }
+  .pill{ display:inline-block; font-size:11px; padding:3px 8px; border-radius:6px; background:var(--el); margin:2px; font-family:monospace; }
+</style>
+</head>
+<body>
+<div id="gate">관리자 확인 중…</div>
+<div id="app" hidden>
+  <h1>🛠 어드민 패널</h1>
+  <div class="sub" id="who"></div>
+
+  <div class="box">
+    <h2>💾 백업 (먼저 해두세요)</h2>
+    <div class="row">
+      <button class="p" id="bkDown">지금 저장값 전부 백업 다운로드</button>
+      <label style="font-size:12px;">백업 불러오기 <input type="file" id="bkUp" accept=".json"></label>
+    </div>
+    <div class="hint">이 기기(브라우저)에 저장된 모든 게임 진행 상황을 파일로 저장해요. 뭔가 꼬이면 이 파일로 되돌릴 수 있어요.</div>
+  </div>
+
+  <div class="box">
+    <h2>🔷 샤드</h2>
+    <div class="row">현재: <b id="shNow">0</b></div>
+    <div class="row">
+      <input id="shIn" type="number" placeholder="원하는 양" style="width:150px;">
+      <button class="p" id="shSet">이 값으로 설정</button>
+      <button id="shAdd">+10,000</button>
+      <button id="shMax">99,999,999</button>
+      <button id="shPkg">샤드 상점 패키지 전부 받을 수 있게</button>
+    </div>
+  </div>
+
+  <div class="box">
+    <h2>🎒 아바타 아이템</h2>
+    <div class="row">
+      <button class="g" id="itAll">모든 아이템 · 얼굴 · 이모트 · 시크릿 해금</button>
+    </div>
+    <div class="hint" id="itInfo"></div>
+  </div>
+
+  <div class="box">
+    <h2>⭐ 계정 레벨</h2>
+    <div class="row">현재: <b id="lvNow">-</b></div>
+    <div class="row">
+      <input id="lvIn" type="number" min="1" max="200" placeholder="원하는 레벨 (1~200)" style="width:170px;">
+      <button class="p" id="lvSet">이 레벨로 설정</button>
+      <button id="lvUp">+1 레벨</button>
+      <button id="lvMax">200 레벨 (최대)</button>
+    </div>
+    <div class="row">
+      <input id="xpIn" type="number" placeholder="XP" style="width:120px;">
+      <button id="xpAdd">XP 더하기</button>
+    </div>
+    <div class="hint">계정(Firebase)에 저장돼서 다른 기기 · 친구 프로필 · 랭킹에도 반영돼요. 레벨 보상(샤드 · 아이템)도 같이 받아요.</div>
+  </div>
+
+  <div class="box">
+    <h2>🏆 랭킹 기록</h2>
+    <div class="row">
+      <select id="lbCat" style="flex:1;min-width:200px;"></select>
+      <button id="lbLoad">내 기록 보기</button>
+    </div>
+    <div class="row">현재 내 기록: <b id="lbMine">-</b></div>
+    <div class="row">
+      <input id="lbScore" type="number" placeholder="점수" style="width:160px;">
+      <button class="p" id="lbSet">기록 올리기</button>
+      <button class="r" id="lbDel">내 기록 삭제</button>
+    </div>
+    <div class="hint">⚠ 랭킹은 모든 플레이어에게 보여요. 시간 기록(⏱)은 숫자가 작을수록 1등이고 단위는 밀리초예요(1분 = 60000). 원래 기록보다 좋을 때만 바뀌어서, 낮추려면 먼저 삭제하세요.</div>
+  </div>
+
+  <div class="box">
+    <h2>🗂 모든 게임 저장값 편집기</h2>
+    <div class="row">
+      <input id="lsFilter" placeholder="검색 (예: coin, xp, level, money)" style="flex:1;min-width:180px;">
+      <button id="lsMaxAll">검색된 숫자값 전부 최대로</button>
+      <button id="lsRefresh">새로고침</button>
+    </div>
+    <div class="row">
+      <input id="lsNewK" placeholder="새 키" style="width:160px;">
+      <input id="lsNewV" placeholder="값" style="flex:1;min-width:120px;">
+      <button id="lsAdd">추가</button>
+    </div>
+    <div class="hint">게임마다 돈 · 레벨 · 진행도가 여기 저장돼요. 값을 바꾸고 💾 를 누른 뒤 게임을 다시 열면 적용돼요.</div>
+    <div id="lsList" style="margin-top:8px;"></div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="multiplayer.js"></script>
+<script>
+// ▼ 관리자로 인정할 이메일 (가입할 때 쓴 이메일)
+const ADMIN_EMAILS = ['zihoo1017@gmail.com'];
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.remove('on'),1800); }
+
+function gate(){
+  const deny = msg => { $('gate').innerHTML = msg + '<br><br><a href="account.html" style="color:#8fb0ff">계정 관리 (로그인)</a> · <a href="hub.html" style="color:#8fb0ff">허브로</a>'; };
+  if (!window.MP || !MP.initAuthOnly){ deny('multiplayer.js 를 못 불러왔어요.'); return; }
+  MP.initAuthOnly(()=>{
+    const u = MP.currentUser && MP.currentUser();
+    const email = u && u.email ? u.email.toLowerCase() : '';
+    if (!ADMIN_EMAILS.includes(email)){ deny('🔒 관리자 계정이 아니에요' + (email ? ' (' + esc(email) + ')' : ' — 로그인이 필요해요')); return; }
+    $('gate').hidden = true; $('app').hidden = false;
+    $('who').textContent = '관리자: ' + email;
+    init();
+  });
+}
+
+function init(){
+  // ---- 백업 ----
+  $('bkDown').onclick = ()=>{
+    const o = {}; for (let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); o[k]=localStorage.getItem(k); }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(o,null,1)],{type:'application/json'}));
+    a.download = 'playhub-backup-' + new Date().toISOString().slice(0,10) + '.json'; a.click();
+  };
+  $('bkUp').onchange = e=>{
+    const f = e.target.files[0]; if (!f) return;
+    f.text().then(t=>{ const o = JSON.parse(t); if (!confirm(Object.keys(o).length + '개 값을 되돌릴까요?')) return;
+      Object.keys(o).forEach(k=>localStorage.setItem(k,o[k])); toast('복구 완료'); renderAll(); }).catch(()=>toast('파일이 이상해요'));
+  };
+
+  // ---- 샤드 ----
+  const setSh = n => { localStorage.setItem('shard_balance', String(Math.max(0,Math.floor(n)))); renderAll(); toast('샤드 ' + Math.floor(n).toLocaleString()); };
+  const curSh = () => parseInt(localStorage.getItem('shard_balance')||'0',10)||0;
+  $('shSet').onclick = ()=>{ const v = +$('shIn').value; if (isFinite(v)) setSh(v); };
+  $('shAdd').onclick = ()=> setSh(curSh() + 10000);
+  $('shMax').onclick = ()=> setSh(99999999);
+  $('shPkg').onclick = ()=>{ localStorage.setItem('shard_claimed','[]'); localStorage.setItem('total_play_seconds', String(1300*60)); toast('상점에서 패키지를 전부 받을 수 있어요'); };
+
+  // ---- 아이템 ----
+  $('itAll').onclick = ()=>{
+    const ids = new Set(), secrets = new Set(['ditto']);
+    const take = it => { if (!it) return; if (it.id) ids.add(it.id); if (it.secret) secrets.add(it.secret); };
+    (MP.AVATAR_CATALOG||[]).forEach(take); (MP.AVATAR_FACES||[]).forEach(take); (MP.EMOTES||[]).forEach(take);
+    const pal = MP.AVATAR_PALETTE || {}; Object.keys(pal).forEach(k=>(pal[k]||[]).forEach(take));
+    ids.forEach(id=>{ try { MP.addOwnedItem && MP.addOwnedItem(id); } catch(e){} });
+    // 계정 저장이 안 되는 경우를 대비해 로컬에도
+    let own = []; try { own = JSON.parse(localStorage.getItem('mp_owned_items')||'[]')||[]; } catch(e){}
+    ids.forEach(id=>{ if (!own.includes(id)) own.push(id); }); localStorage.setItem('mp_owned_items', JSON.stringify(own));
+    secrets.forEach(s=>{ try { MP.unlockSecret && MP.unlockSecret(s); } catch(e){} });
+    $('itInfo').textContent = '아이템 ' + ids.size + '개, 시크릿 ' + secrets.size + '개 해금했어요. 레벨 보상 아이템도 포함이에요.';
+    toast('전부 해금!');
+  };
+
+  // ---- 레벨 ----
+  // multiplayer.js 와 같은 공식: 레벨 n → n+1 에 필요한 XP = 500 × 1.18^(n-1)
+  const need = lv => Math.round(500 * Math.pow(1.18, Math.max(0, lv - 1)));
+  // 아주 살짝 더 넣어서 소수 계산 오차로 한 레벨 모자라지 않게
+  const xpForLevel = lv => { let s = 0; for (let i = 1; i < lv; i++) s += need(i); return Math.ceil(s * 1.000001); };
+  const showLv = ()=>{ const L = MP.getLevel(); $('lvNow').textContent = 'LV ' + L.level + ' · ' + L.total.toLocaleString() + ' XP'; };
+  MP.fetchAccountXP(showLv);
+  function setXP(target){
+    target = Math.max(0, Math.floor(target));
+    const cur = MP.getLevel().total;
+    if (target >= cur){
+      MP.addXP(target - cur, ()=>{ MP.claimLevelRewards(); showLv(); renderAll(); toast('LV ' + MP.getLevel().level + ' 완료'); });
+      return;
+    }
+    // 낮추기: addXP 는 더하기만 되니까 계정 값과 이 기기 값을 직접 바꾸고 새로고침
+    const lv = MP.levelFromXP(target).level;
+    localStorage.setItem('mp_xp', String(target));
+    firebase.database().ref('playhub_mp/users/' + MP.uid).update({ xp: target, level: lv })
+      .then(()=>{ toast('LV ' + lv + ' 로 낮췄어요'); setTimeout(()=>location.reload(), 600); })
+      .catch(err=>toast('실패: ' + err.code));
+  }
+  $('lvSet').onclick = ()=>{ const v = Math.min(200, Math.max(1, Math.floor(+$('lvIn').value || 1))); setXP(xpForLevel(v)); };
+  $('lvUp').onclick = ()=> setXP(xpForLevel(Math.min(200, MP.getLevel().level + 1)));
+  $('lvMax').onclick = ()=> setXP(xpForLevel(200));
+  $('xpAdd').onclick = ()=>{ const v = +$('xpIn').value; if (v > 0) setXP(MP.getLevel().total + v); };
+
+  // ---- 랭킹 ---- (허브 랭킹 화면과 같은 목록)
+  const BOARDS = [
+    ['level','desc','계정 레벨 (XP)'], ['aura_best','desc','아우라 배틀 최고 등급'], ['jumpmap','asc','⏱ 스카이 점프맵 완주'], ['jumpmap_cp','desc','스카이 점프맵 체크포인트'],
+    ['rainbow100','desc','레인보우 100 레벨'], ['wordchain_wins','desc','끝말잇기 우승'], ['garden_tier','desc','그로우 가든 최고 등급 (0~11)'], ['garden_value','desc','그로우 가든 최고 작물'],
+    ['mmo_lv','desc','에테리아 레벨'], ['mmo_boss','desc','기사왕 피해량'], ['battlegrounds_kills','desc','가장 강한 전장 처치'], ['admintower','asc','⏱ 어드민 타워 클리어'],
+    ['protower','asc','⏱ 고수 타워 클리어'], ['protower_floor','desc','고수 타워 최고층 (16 = 정복)'], ['nightfall','desc','나이트폴 (웨이브×10000+킬)'], ['forest_level','desc','포레스트 스트라이크 레벨'],
+    ['redline_rr','desc','REDLINE RR'], ['redline_kills','desc','REDLINE 처치'], ['exit8_best','asc','⏱ 8번 출구 탈출'], ['backrooms','asc','⏱ 백룸 탈출'],
+    ['ambo_wins','desc','암보 승리'], ['isle_best','asc','⏱ 바람의 섬 클리어 (초 단위)'], ['fruit_best','desc','프루티 팝 점수'], ['hotel_best','desc','심야 호텔 최고 문 (100 = 탈출)'],
+    ['mnq_best','desc','마네킹 백화점 최고 밤'], ['jamboree_wins','desc','잼버리 우승'] ];
+  $('lbCat').innerHTML = BOARDS.map((b,i)=>'<option value="'+i+'">'+esc(b[2])+'</option>').join('');
+  const curB = ()=> BOARDS[+$('lbCat').value];
+  const loadMine = ()=>{ $('lbMine').textContent = '불러오는 중…'; MP.fetchMyScore(curB()[0], v=>{ $('lbMine').textContent = v && v.score != null ? Number(v.score).toLocaleString() : '기록 없음'; }); };
+  $('lbCat').onchange = loadMine; $('lbLoad').onclick = loadMine; loadMine();
+  $('lbSet').onclick = ()=>{
+    const s = +$('lbScore').value; if (!isFinite(s) || $('lbScore').value === '') return toast('점수를 넣어 주세요');
+    const [cat, dir] = curB(); const extra = cat === 'level' ? { level: MP.levelFromXP(s).level } : {};
+    MP.submitScore(cat, s, dir, extra, ok=>{ toast(ok ? '기록 올림!' : '기존 기록이 더 좋아요 — 먼저 삭제하세요'); loadMine(); });
+  };
+  $('lbDel').onclick = ()=>{
+    const cat = curB()[0]; if (!confirm(curB()[2] + ' 내 기록을 지울까요?')) return;
+    firebase.database().ref('playhub_mp/leaderboard/' + cat + '/' + MP.uid).remove()
+      .then(()=>{ toast('삭제함'); loadMine(); }).catch(err=>toast('실패: ' + err.code));
+  };
+
+  // ---- 저장값 편집기 ----
+  $('lsFilter').oninput = renderLS; $('lsRefresh').onclick = renderAll;
+  $('lsAdd').onclick = ()=>{ const k=$('lsNewK').value.trim(); if (!k) return; localStorage.setItem(k,$('lsNewV').value); renderLS(); toast('추가함'); };
+  $('lsMaxAll').onclick = ()=>{
+    const ks = filteredKeys().filter(k=>/^-?\d+(\.\d+)?$/.test(localStorage.getItem(k)));
+    if (!ks.length) return toast('숫자값이 없어요');
+    if (!confirm(ks.length + '개 숫자값을 99999999 로 바꿀까요?\n(레벨 번호 같은 건 게임이 깨질 수 있어요 — 백업 먼저!)\n\n' + ks.join('\n'))) return;
+    ks.forEach(k=>localStorage.setItem(k,'99999999')); renderLS(); toast('완료');
+  };
+  $('lsList').onclick = e=>{
+    const b = e.target.closest('button'); if (!b) return; const k = b.dataset.k;
+    const ta = $('lsList').querySelector('textarea[data-k="'+CSS.escape(k)+'"]');
+    if (b.dataset.act==='save'){ localStorage.setItem(k, ta.value); toast('저장: ' + k); renderAll(); }
+    if (b.dataset.act==='max'){ localStorage.setItem(k, '99999999'); renderAll(); toast('최대: ' + k); }
+    if (b.dataset.act==='del' && confirm(k + ' 를 지울까요?')){ localStorage.removeItem(k); renderLS(); }
+  };
+  renderAll();
+}
+function filteredKeys(){
+  const q = $('lsFilter').value.trim().toLowerCase(), out = [];
+  for (let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if (!q || k.toLowerCase().includes(q) || (localStorage.getItem(k)||'').toLowerCase().includes(q)) out.push(k); }
+  return out.sort();
+}
+function renderLS(){
+  const ks = filteredKeys();
+  $('lsList').innerHTML = ks.length ? ks.map(k=>{
+    const v = localStorage.getItem(k) || '', num = /^-?\d+(\.\d+)?$/.test(v);
+    return '<div class="kv"><code>'+esc(k)+'</code><textarea data-k="'+esc(k)+'">'+esc(v.length>4000 ? v.slice(0,4000) : v)+'</textarea>'
+      +'<div class="bt"><button data-act="save" data-k="'+esc(k)+'">💾</button>'+(num?'<button data-act="max" data-k="'+esc(k)+'">MAX</button>':'')+'<button class="r" data-act="del" data-k="'+esc(k)+'">✕</button></div></div>';
+  }).join('') : '<div class="hint">저장값이 없어요.</div>';
+}
+function renderAll(){ $('shNow').textContent = (parseInt(localStorage.getItem('shard_balance')||'0',10)||0).toLocaleString(); renderLS(); }
+gate();
+</script>
+</body>
+</html>
