@@ -518,6 +518,7 @@ function catCol(p,x,y,h,br,of,H){
  return furCol(p,x,y,h,br,H);
 }
 function furCol(p,x,y,h,br,H){
+ if(br.pat==='champ')return champFur(p,x,y,h,br);
  if(br.fancy)return fancyCol(p,x,y,h,br);
  const pat=br.pat,F=br.F,D=br.D||br.F,B=br.B,k=p.k;
  if(k==='earIn')return pat==='points'?D:(br.P||'#ffa0b4');
@@ -612,6 +613,16 @@ function unlockMS(b){save.breeds.push(b.id);persist();runUnlocks.push(b.name);
  sfx('buy');setTimeout(()=>sfx('gem'),250);vib(80);}
 function grantPast(){if(save.best>=100000){save.best=22000;persist();}if(save.best>=2500&&!save.skillBlast){save.skillBlast=true;persist();}if(save.skillBlast&&!ownSkill('blast'))giveSkill('blast');const got=[];for(const b of MS_BREEDS())if(save.best>=b.ms&&!save.breeds.includes(b.id)){save.breeds.push(b.id);got.push(b.name);}if(got.length){persist();setTimeout(()=>toast('🎁 기록 보상 고양이 '+got.length+'마리 지급!'),600);}}
 function overBadge(){const t=[];if(newBest)t.push('🎉 신기록!');if(runUnlocks.length)t.push('🐱 새 고양이: '+runUnlocks.join(', '));const e=$('onew');e.innerHTML=t.join('<br>');e.style.display=t.length?'block':'none';}
+/* ================= 챔피언 캣 (레이싱 1·2·3등 전용, 어드민 지급) ================= */
+function champFur(p,x,y,h,br){const k=p.k,m=(a,n)=>((Math.floor(a)%n)+n)%n,RB=['#ff4a6a','#ff9a3a','#ffe14a','#4ae06a','#4ab0ff','#9a6aff'];
+ if(k==='earIn')return'#ffd0f8';
+ const belly=k==='belly'||k==='muzzle'||(k==='body'&&h&&p.t==='e'&&h[1]>.55);
+ if(m(x*2+y*2+gt*40,13)<2)return'#ffffff';
+ if(belly)return'#fff4d8';
+ const idx=m((x*7+y*9-gt*120)/18,6);
+ if(m(x-y+gt*30,8)===0)return'#ffffff';
+ return RB[idx];}
+BREED.champion=BREEDS[BREEDS.push({id:'champion',name:'챔피언 캣',desc:'🏆 이벤트 1·2·3등만 받는 전설의 고양이',price:0,cur:'c',champ:1,hidden:1,fancy:1,pat:'champ',F:'#ffd23f',B:'#fff4d8',E:'#ff2a8a',O:'#6a3a00',fx:'cosmic',acc:['crown','halo','wingsG']})-1];
 function catSprite(pose,fr,bid,oid){
  const key=pose+fr+'|'+bid+'|'+oid;let c=sprC.get(key);if(c)return c;
  const br=BREED[bid]||BREEDS[0],of=OUTFIT[oid]||OUTFIT.none;
@@ -1707,7 +1718,7 @@ const PANELS={
   return '<div class="li'+(open?'':' locked')+'"><img src="'+bossURL(b.id)+'" alt="" style="width:calc(var(--u)*30);height:calc(var(--u)*30);image-rendering:pixelated"><div class="tx"><b>'+(i+1)+'단계 · '+b.name+(clr?' ✅':'')+'</b><small>'+b.desc+' · 체력 '+b.hp+'<br>보상 '+rewardText({c:b.reward[0],g:b.reward[1]})+(clr?'':' (첫 클리어 2배)')+'</small></div><button class="gb sm purple" data-act="boss" data-arg="'+i+'"'+(open?'':' disabled')+'>'+(open?'도전':'🔒')+'</button></div>';}).join('')+
   '<div class="note">보스가 떨어뜨리는 공격을 피하면서 반짝이는 황금 생선을 먹으면 생선 미사일이 보스에게 날아가요.</div>'];},
  online(){setTimeout(loadRank,0);return['🌐 온라인 랭킹',heroHTML()+'<div class="li"><span class="em">🏆</span><div class="tx"><b>내 최고 기록 '+fmt(save.best)+'m</b><small>닉네임: '+esc(save.nick||'이름없는 냥이')+' (프로필에서 변경)</small></div></div><div class="panel" style="padding:calc(var(--u)*2)" id="rankBox"><div class="note">랭킹 불러오는 중…</div></div>'];},
- cats(){return['고양이',heroHTML()+'<div class="note">🏆 100m, 300m, 500m, 700m, 900m, 1100m, 1300m, 1500m, 1800m, 2000m에 도달하면 화려한 특별 고양이를 받아요!</div>'+'<div class="grid">'+BREEDS.map(b=>cardHTML('b',b)).join('')+'</div>'];},
+ cats(){return['고양이',heroHTML()+'<div class="note">🏆 100m, 300m, 500m, 700m, 900m, 1100m, 1300m, 1500m, 1800m, 2000m에 도달하면 화려한 특별 고양이를 받아요!</div>'+'<div class="grid">'+BREEDS.filter(b=>!b.hidden||own('b',b.id)).map(b=>cardHTML('b',b)).join('')+'</div>'];},
  wardrobe(){const tabs='<div class="tabs"><button class="gb sm'+(wardTab==='skin'?' act':'')+'" data-act="wtab" data-arg="skin">👔 직업 스킨</button><button class="gb sm'+(wardTab==='skill'?' act':'')+'" data-act="wtab" data-arg="skill">🪄 스킬</button></div>';
   if(wardTab==='skill')return['옷장 · 스킬',tabs+'<div class="note">스킬은 2개까지 낄 수 있어요. 원하는 칸(E 또는 R)을 누르면 끼워져요. PC는 E / R키, 모바일은 오른쪽 아래 작은 버튼으로 써요.</div>'+slotBar()+skillsHTML()];
   return['옷장 · 직업 스킨',tabs+heroHTML()+'<div class="grid">'+OUTFITS.map(o=>cardHTML('o',o)).join('')+'</div><div class="note">한정 스킨은 할로윈 사탕으로 살 수 있어요.</div>'];},
@@ -1797,7 +1808,7 @@ const ACT={
   if(!P||!spend(P[0],P[1]))return;P[2]();persist();sfx('buy');toast('구매 완료!');rerender();},
  gacha:a=>{if(gachaBusy)return;if(!spend(a,a==='c'?200:3))return;persist();refreshWallet();gachaBusy=true;
   const cap=$('cap');if(cap){cap.classList.add('spin');cap.textContent='❔';}$('gres').innerHTML='<div class="note">두근두근…</div>';sfx('elev');
-  setTimeout(()=>{gachaBusy=false;const pool=[...BREEDS.filter(b=>!b.ms&&!b.secret&&!own('b',b.id)).map(b=>['b',b]),...OUTFITS.filter(o=>!o.limited&&!own('o',o.id)).map(o=>['o',o])];let html;
+  setTimeout(()=>{gachaBusy=false;const pool=[...BREEDS.filter(b=>!b.ms&&!b.secret&&!b.hidden&&!own('b',b.id)).map(b=>['b',b]),...OUTFITS.filter(o=>!o.limited&&!own('o',o.id)).map(o=>['o',o])];let html;
    if(pool.length&&Math.random()<.45){const[k,it]=pool[Math.random()*pool.length|0];(k==='b'?save.breeds:save.outfits).push(it.id);
     html='<img src="'+(k==='b'?catURL('sit',2,it.id,'none'):catURL('sit',2,save.breed,it.id))+'" alt=""><b class="big-n">'+it.name+'</b><div class="note">새로운 '+(k==='b'?'고양이':'직업 스킨')+'를 얻었어요! 옷장/고양이 메뉴에서 장착하세요.</div>';}
    else if(Math.random()<.3){const g=1+(Math.random()*3|0);save.gems+=g;html='<b class="big-n">'+ICH('g')+' 보석 '+g+'개</b>';}
@@ -2112,6 +2123,7 @@ function resize(){
  if(state==='home')camY=-(H-70);
 }
 window.addEventListener('resize',resize);
+if(location.protocol==='file:')window.__njtest={catSprite,bossSprite,get save(){return save;},openPanel,ACT,get state(){return state;},get cat(){return cat;},tick,render,startGame,press};
 
 /* ================= 메인 루프 ================= */
 let last=performance.now(),badgeT=0;
