@@ -1603,7 +1603,7 @@ async function loadRank(){
  try{await submitScore();const s=await DB.collection('ranking').orderBy('best','desc').limit(50).get();
   if(!$('rankBox'))return;
   if(!s.docs.length){$('rankBox').innerHTML='<div class="note">아직 아무도 기록이 없어요. 첫 번째 주인공이 되어 보세요!</div>';return;}
-  let html='';const rows=s.docs.filter(d=>{const v=d.data()||{};if(isBannedName(d.id)||isBannedName(v.nick)){if(FB)fbReq('ranking/'+fbKey(d.id),'DELETE').catch(()=>{});return false;}return true;}).map(d=>{let bb=Math.max(0,Math.floor(Number((d.data()||{}).best)||0));if(bb>=100000){bb=22000;if(FB)fbReq('ranking/'+fbKey(d.id)+'/best','PUT',22000).catch(()=>{});}return{d,bb};}).sort((a,b)=>b.bb-a.bb);rows.forEach(({d,bb},i)=>{const v=d.data()||{},best=bb,nick=typeof v.nick==='string'?v.nick.slice(0,10):'냥이',
+  let html='';const BNs=FB?((await fbReq('banned','GET').catch(()=>null))||{}):{};const rows=s.docs.filter(d=>{const v=d.data()||{};if(BNs[d.id])return false;if(isBannedName(d.id)||isBannedName(v.nick)){if(FB)fbReq('ranking/'+fbKey(d.id),'DELETE').catch(()=>{});return false;}return true;}).map(d=>{let bb=Math.max(0,Math.floor(Number((d.data()||{}).best)||0));if(bb>=100000){bb=22000;if(FB)fbReq('ranking/'+fbKey(d.id)+'/best','PUT',22000).catch(()=>{});}return{d,bb};}).sort((a,b)=>b.bb-a.bb);rows.forEach(({d,bb},i)=>{const v=d.data()||{},best=bb,nick=typeof v.nick==='string'?v.nick.slice(0,10):'냥이',
    b=BREED[v.breed]?v.breed:'cheese',o=OUTFIT[v.outfit]?v.outfit:'none',me=d.id===UID;
    html+='<div class="rk'+(me?' me':'')+'"><span class="no">'+(i<3?['🥇','🥈','🥉'][i]:i+1)+'</span><img src="'+headURL(b,o)+'" alt=""><span class="nn">'+esc(nick)+(me?' (나)':'')+'</span><b>'+fmt(best)+'m</b></div>';});
   rankAt=Date.now();if(html!==rankCache){rankCache=html;$('rankBox').innerHTML=html;}
@@ -1666,7 +1666,7 @@ const PANELS={
   '<div class="li"><span class="em">🌐</span><div class="tx"><b>온라인 랭킹</b><small>최고 기록이 자동으로 올라가요. 프로필에서 닉네임을 정하세요.</small></div></div>'];},
  starter(){return['스타터 패키지',save.starter?'<div class="note" style="text-align:center">이미 받았어요. 즐거운 점프 되세요!</div>':
   '<div class="li"><span class="em">🌱</span><div class="tx"><b>새싹 냥이 선물</b><small>처음 한 번만 받을 수 있어요</small></div></div><div class="li"><span class="em">🎁</span><div class="tx"><b>'+ICH('c')+'500 · '+ICH('g')+'5 · 시작 보호막 3개</b></div></div><button class="gb green big" data-act="starter">받기</button>'];},
- settings(){return['설정',
+ settings(){return['설정',(isAdmin()?'<div class="li" style="background:#2a1a4a;color:#fff"><span class="em">🛡️</span><div class="tx"><b>관리자 메뉴</b><small style="color:#d8c8ff">플레이어 정지·해제</small></div><button class="gb sm purple" data-open="admin">열기</button></div>':'')+
   '<div class="li"><span class="em">🔊</span><div class="tx"><b>효과음</b></div><button class="gb sm '+(save.mute?'cream':'green')+'" data-act="tog" data-arg="mute">'+(save.mute?'꺼짐':'켜짐')+'</button></div>'+
   '<div class="li"><span class="em">🎵</span><div class="tx"><b>배경음악</b><small>구간마다 다른 음악</small></div><button class="gb sm '+(save.music!==false?'green':'cream')+'" data-act="tog" data-arg="music">'+(save.music!==false?'켜짐':'꺼짐')+'</button></div>'+
   '<div class="li"><span class="em">📳</span><div class="tx"><b>진동</b><small>지원하는 휴대폰에서만</small></div><button class="gb sm '+(save.vib?'green':'cream')+'" data-act="tog" data-arg="vib">'+(save.vib?'켜짐':'꺼짐')+'</button></div>'+
@@ -2020,7 +2020,7 @@ async function accLogin(){
   if(isBannedName(id)||isBannedName(u.save&&u.save.nick)){banDevice();return;}
   const h=await hashPw(pw,u.salt);if(h!==u.hash){toast('비밀번호가 틀렸어요');return;}
   try{localStorage.setItem(SK+'_guest',JSON.stringify(save));}catch(e){}
-  if(u.save)applySave(u.save);setSession(fbKey(id),h);persist();sfx('buy');toast('로그인했어요! 어서 와요 '+(save.nick||id));
+  if(u.save)applySave(u.save);setSession(fbKey(id),h);persist();sfx('buy');toast('로그인했어요! 어서 와요 '+(save.nick||id));checkBanned();
   lobbyLast='';lobbyUpdate();submitScore();closeModal();
  }catch(e){toast('서버에 연결하지 못했어요');}finally{accBusy=false;}
 }
@@ -2054,6 +2054,30 @@ PANELS.account=function(){
   '<button class="gb cream" data-act="aguest">게스트로 그냥 하기</button>'+
   '<div class="note">로그인하면 다른 기기에서도 같은 기록·코인·스킨으로 이어서 할 수 있어요. 회원가입하면 지금까지 한 기록도 그대로 옮겨져요.<br>⚠️ 다른 사이트에서 쓰는 비밀번호는 쓰지 마세요.</div>'];
 };
+/* ================= 관리자 (아이디 user) : 플레이어 정지 ================= */
+const ADMIN_ID='user';
+const isAdmin=()=>!!(FB&&session&&session.id===ADMIN_ID);
+let DEV_ID='';try{DEV_ID=localStorage.getItem('nyangjump_dev')||'';if(!DEV_ID){DEV_ID=mkCode(12).toLowerCase();localStorage.setItem('nyangjump_dev',DEV_ID);}}catch(e){}
+function unbanDevice(){BANNED_DEV=false;try{localStorage.removeItem('nyangjump_ban2');}catch(e){}const d=$('banScreen');if(d)d.remove();}
+async function checkBanned(){if(!FB||isAdmin())return;try{
+ if(UID){const b=await fbReq('banned/'+fbKey(UID),'GET');if(b){fbReq('bannedDev/'+fbKey(DEV_ID),'PUT',UID).catch(()=>{});banDevice();return;}}
+ const dv=DEV_ID?await fbReq('bannedDev/'+fbKey(DEV_ID),'GET'):null;
+ if(dv){const b2=await fbReq('banned/'+fbKey(dv),'GET');if(b2){banDevice();return;}fbReq('bannedDev/'+fbKey(DEV_ID),'DELETE').catch(()=>{});}
+ if(BANNED_DEV&&!isBannedName(save.nick)&&!(session&&isBannedName(session.id)))unbanDevice();
+}catch(e){}}
+PANELS.admin=function(){if(!isAdmin())return['관리자','<div class="note">관리자만 볼 수 있어요.</div>'];setTimeout(loadAdmin,0);
+ return['🛡️ 관리자','<div class="li"><span class="em">🔨</span><div class="tx"><input class="inp" id="banIn" maxlength="12" placeholder="정지할 아이디 입력" autocapitalize="off"></div><button class="gb sm pink" data-act="banId">정지</button></div>'+
+ '<div class="note">랭킹에 있는 플레이어예요. 정지를 누르면 30초 안에 그 사람 게임이 막히고, 해제하면 다시 풀려요.</div><div class="panel" style="padding:calc(var(--u)*2)" id="adminBox"><div class="note">불러오는 중…</div></div>'];};
+async function loadAdmin(){if(!$('adminBox'))return;try{const rk=(await fbReq('ranking','GET'))||{},B=(await fbReq('banned','GET'))||{};
+ const rows=Object.keys(rk).map(k=>({k,v:rk[k]||{}})).sort((a,b)=>(Number(b.v.best)||0)-(Number(a.v.best)||0)).slice(0,100);let h='';
+ for(const{k,v}of rows){if(k==='u_'+ADMIN_ID)continue;const isB=!!B[k];h+='<div class="rk"><span class="nn">'+esc(String(v.nick||'?').slice(0,10))+' <small style="opacity:.6">'+esc(k.startsWith('u_')?k.slice(2):'게스트')+'</small></span><b>'+fmt(Number(v.best)||0)+'m</b><button class="gb sm '+(isB?'green':'pink')+'" data-act="'+(isB?'unban':'ban')+'" data-arg="'+esc(k)+'">'+(isB?'해제':'정지')+'</button></div>';}
+ for(const k of Object.keys(B).filter(k=>!rk[k]))h+='<div class="rk"><span class="nn">'+esc(k.startsWith('u_')?k.slice(2):k)+' <small>(정지됨)</small></span><button class="gb sm green" data-act="unban" data-arg="'+esc(k)+'">해제</button></div>';
+ if($('adminBox'))$('adminBox').innerHTML=h||'<div class="note">아무도 없어요</div>';}catch(e){if($('adminBox'))$('adminBox').innerHTML='<div class="note">불러오지 못했어요</div>';}}
+Object.assign(ACT,{
+ ban:k=>{if(!isAdmin()||!k||k==='u_'+ADMIN_ID)return;fbReq('banned/'+fbKey(k),'PUT',{t:Date.now()}).then(()=>{toast('🔨 정지했어요');loadAdmin();}).catch(()=>toast('실패했어요'));},
+ unban:async k=>{if(!isAdmin()||!k)return;try{await fbReq('banned/'+fbKey(k),'DELETE');const dv=(await fbReq('bannedDev','GET'))||{};for(const d in dv)if(dv[d]===k)await fbReq('bannedDev/'+fbKey(d),'DELETE');toast('✅ 해제했어요');loadAdmin();}catch(e){toast('실패했어요');}},
+ banId:()=>{const id=normId($('banIn')&&$('banIn').value);if(!id){toast('아이디를 입력하세요');return;}if(id===ADMIN_ID){toast('관리자는 정지할 수 없어요');return;}ACT.ban('u_'+fbKey(id));}});
+
 Object.assign(ACT,{atab:a=>{accTab=a;rerender();},alogin:()=>accLogin(),asignup:()=>accSignup(),alogout:()=>accLogout(),
  aguest:()=>{try{localStorage.setItem('nyangjump_guest','1');}catch(e){}closeModal();}});
 
@@ -2335,7 +2359,7 @@ window.addEventListener('keydown',e=>{const k=(e.key||'').toLowerCase(),mod=e.me
 setInterval(()=>{const open=(window.outerWidth-window.innerWidth>200)||(window.outerHeight-window.innerHeight>220);let d=$('dtBlock');
  if(open){if(!d){d=document.createElement('div');d.id='dtBlock';d.style.cssText='position:absolute;inset:0;z-index:49;background:rgba(10,0,10,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;gap:calc(var(--u)*3);font-size:calc(var(--u)*9)';d.innerHTML='<div style="font-size:calc(var(--u)*22)">🛑</div><b>개발자 도구를 닫아 주세요</b><small style="opacity:.7;font-size:calc(var(--u)*6.5)">닫으면 다시 할 수 있어요</small>';stage.appendChild(d);}
   if(state==='play'||state==='ready')togglePause();}else if(d)d.remove();},700);
-initOnline().then(accInit).then(()=>{checkTop();setInterval(checkTop,15000);}).catch(()=>{});
+initOnline().then(accInit).then(()=>{checkTop();setInterval(checkTop,15000);checkBanned();setInterval(checkBanned,30000);}).catch(()=>{});
 requestAnimationFrame(frame);
 })();
 </script>
