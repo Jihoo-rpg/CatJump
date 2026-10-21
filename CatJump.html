@@ -1278,6 +1278,10 @@ function genChunk(y0){
  if(fl>80)opts.push(['wallsaw',.7+1.1*d]);
  if(!hard&&fl>25&&lastCannon-ym>1600)opts.push(['cannon',1.1]);
  if(fl>250||hard)opts.push(['combo',hard?2.5:1.3*d]);
+ if(fl>=600)opts.push(['fireball',1.2]);
+ if(fl>=900)opts.push(['mine',1.1]);
+ if(fl>=1200)opts.push(['spinbar',1]);
+ if(fl>=2000)opts.push(['arm',1.6]);
  let type=pickW(opts);const side=gr()<.5?'L':'R',other=side==='L'?'R':'L';
  const saw=(bx,by,ax,amp,sp)=>({type:'saw',bx,by,x:bx,y:by,r:9,ax,amp:amp||0,sp:sp||0,ph:grnd(0,6),rot:0});
  const midOK=y=>midFree(y);
@@ -1673,7 +1677,8 @@ async function initOnline(){if(FB){DB=fbDB();if(!save.uid){save.uid=Array.from({
 let topIds=null,topBest={};
 async function checkTop(){if(!DB)return;try{const s=await DB.collection('ranking').orderBy('best','desc').limit(12).get();
  let arr=s.docs.filter(d=>!isBannedName(d.id)&&!isBannedName((d.data()||{}).nick)).map(d=>({id:d.id,b:Math.max(0,Math.floor(Number((d.data()||{}).best)||0)),v:d.data()||{}}));
- arr.sort((a,b)=>b.b-a.b||(a.id<b.id?-1:1));const top=arr.slice(0,3),ids=top.map(o=>o.id),prev=topIds;
+ arr.sort((a,b)=>b.b-a.b||(a.id<b.id?-1:1));
+ {const seen2={},out=[];for(const o of arr){const nk=String(o.v.nick||'').trim().toLowerCase();if(seen2[nk])continue;seen2[nk]=1;out.push(o);}arr=out;}const top=arr.slice(0,3),ids=top.map(o=>o.id),prev=topIds;
  if(prev===null){topIds=ids;topBest={};top.forEach(o=>topBest[o.id]=o.b);return;}
  let r=-1;for(let k=0;k<ids.length;k++){const id=ids[k],wasRank=prev.indexOf(id),prevBest=topBest[id];
   if(wasRank===-1){r=k;break;}if(wasRank>k&&top[k].b>(prevBest||0)){r=k;break;}}
@@ -1696,7 +1701,7 @@ async function loadRank(){
  try{await submitScore();const s=await DB.collection('ranking').orderBy('best','desc').limit(50).get();
   if(!$('rankBox'))return;
   if(!s.docs.length){$('rankBox').innerHTML='<div class="note">아직 아무도 기록이 없어요. 첫 번째 주인공이 되어 보세요!</div>';return;}
-  let html='';const BNs=FB?((await fbReq('banned','GET').catch(()=>null))||{}):{};const seen={};const rows=s.docs.filter(d=>{const v=d.data()||{};if(BNs[d.id])return false;if(isBannedName(d.id)||isBannedName(v.nick)){if(FB)fbReq('ranking/'+fbKey(d.id),'DELETE').catch(()=>{});return false;}const nk=String(v.nick||'').trim().toLowerCase()+'|'+(v.breed||'');const bb=Math.max(0,Math.floor(Number(v.best)||0));if(seen[nk]!==undefined){if(bb<=seen[nk])return false;}seen[nk]=bb;return true;}).map(d=>{let bb=Math.max(0,Math.floor(Number((d.data()||{}).best)||0));if(bb>=100000){bb=22000;if(FB)fbReq('ranking/'+fbKey(d.id)+'/best','PUT',22000).catch(()=>{});}return{d,bb};}).sort((a,b)=>b.bb-a.bb);rows.forEach(({d,bb},i)=>{const v=d.data()||{},best=bb,nick=typeof v.nick==='string'?v.nick.slice(0,10):'냥이',
+  let html='';const BNs=FB?((await fbReq('banned','GET').catch(()=>null))||{}):{};const seen={};const rows=s.docs.filter(d=>{const v=d.data()||{};if(BNs[d.id])return false;if(isBannedName(d.id)||isBannedName(v.nick)){if(FB)fbReq('ranking/'+fbKey(d.id),'DELETE').catch(()=>{});return false;}const nk=String(v.nick||'').trim().toLowerCase();const bb=Math.max(0,Math.floor(Number(v.best)||0));if(seen[nk]!==undefined){if(bb<=seen[nk])return false;}seen[nk]=bb;return true;}).map(d=>{let bb=Math.max(0,Math.floor(Number((d.data()||{}).best)||0));if(bb>=100000){bb=22000;if(FB)fbReq('ranking/'+fbKey(d.id)+'/best','PUT',22000).catch(()=>{});}return{d,bb};}).sort((a,b)=>b.bb-a.bb);rows.forEach(({d,bb},i)=>{const v=d.data()||{},best=bb,nick=typeof v.nick==='string'?v.nick.slice(0,10):'냥이',
    b=BREED[v.breed]?v.breed:'cheese',o=OUTFIT[v.outfit]?v.outfit:'none',me=d.id===UID;
    html+='<div class="rk'+(me?' me':'')+'"><span class="no">'+(i<3?['🥇','🥈','🥉'][i]:i+1)+'</span><img src="'+headURL(b,o)+'" alt=""><span class="nn">'+esc(nick)+(me?' (나)':'')+'</span><b>'+fmt(best)+'m</b></div>';});
   rankAt=Date.now();if(html!==rankCache){rankCache=html;$('rankBox').innerHTML=html;}
@@ -2279,7 +2284,7 @@ Object.assign(ACT,{
  award:arg=>{if(!isAdmin())return;const [id,rank]=arg.split('|');fbReq('award/'+fbKey(id),'PUT',{rank:+rank,t:Date.now()}).then(()=>toast('🏆 '+rank+'등 지급!')).catch(()=>toast('실패'));},
  setBest:()=>{if(!isAdmin())return;const id=normId($('sbId')&&$('sbId').value),v=Math.max(0,parseInt($('sbVal')&&$('sbVal').value||'0',10));if(!id)return toast('아이디를 입력하세요');fbReq('ranking/u_'+fbKey(id)+'/best','PUT',v).then(()=>{toast('✅ '+id+' 기록을 '+v+'m로 변경');loadAdmin();}).catch(()=>toast('실패'));},
  delTop:async()=>{if(!isAdmin())return;if(!confirm('지금 랭킹 1등을 삭제할까요?'))return;try{const rk=await fbReq('ranking','GET')||{};let top=null;for(const k in rk){const v=rk[k]||{};const bb=Math.max(0,Math.floor(Number(v.best)||0));if(!top||bb>top.bb)top={k,bb,nick:v.nick||'?'};}if(!top){toast('랭킹이 비어 있어요');return;}await fbReq('ranking/'+fbKey(top.k),'DELETE');toast('🗑️ 1등 '+top.nick+' ('+top.bb+'m) 삭제');loadAdmin();}catch(e){toast('실패');}},
- dedupe:async()=>{if(!isAdmin())return;if(!confirm('중복된 랭킹을 정리할까요? (같은 닉네임은 최고 기록만 남겨요)'))return;try{const rk=await fbReq('ranking','GET')||{};const by={};for(const k in rk){const v=rk[k]||{};const nk=String(v.nick||'').trim().toLowerCase()+'|'+(v.breed||'');const bb=Math.max(0,Math.floor(Number(v.best)||0));(by[nk]=by[nk]||[]).push({k,bb});}let del=0;for(const nk in by){const arr=by[nk];if(arr.length<2)continue;arr.sort((a,b)=>b.bb-a.bb);for(let i=1;i<arr.length;i++){await fbReq('ranking/'+fbKey(arr[i].k),'DELETE').catch(()=>{});del++;}}toast('🧹 중복 '+del+'개 정리했어요');loadAdmin();}catch(e){toast('실패');}},
+ dedupe:async()=>{if(!isAdmin())return;if(!confirm('중복된 랭킹을 정리할까요? (같은 닉네임은 최고 기록만 남겨요)'))return;try{const rk=await fbReq('ranking','GET')||{};const by={};for(const k in rk){const v=rk[k]||{};const nk=String(v.nick||'').trim().toLowerCase();const bb=Math.max(0,Math.floor(Number(v.best)||0));(by[nk]=by[nk]||[]).push({k,bb});}let del=0;for(const nk in by){const arr=by[nk];if(arr.length<2)continue;arr.sort((a,b)=>b.bb-a.bb);for(let i=1;i<arr.length;i++){await fbReq('ranking/'+fbKey(arr[i].k),'DELETE').catch(()=>{});del++;}}toast('🧹 중복 '+del+'개 정리했어요');loadAdmin();}catch(e){toast('실패');}},
  recall:async arg=>{if(!isAdmin())return;if(arg==='all'){if(!confirm('모든 사람의 챔피언 캣을 회수할까요?'))return;await fbReq('champRecall','PUT',{all:1,t:Date.now()});toast('🧹 전체 회수 신호를 보냈어요');}else{const id=normId($('rcId')&&$('rcId').value);if(!id)return toast('아이디를 입력하세요');await fbReq('champRecall/ids/'+fbKey(id),'PUT',Date.now());toast('🧹 '+id+' 회수');}}});
 async function loadChamp(){try{const all=await fbReq('evp','GET')||{},now=Date.now();const ps=Object.keys(all).map(k=>({k,v:all[k]})).filter(o=>o.v&&now-(Number(o.v.t)||0)<30000).sort((a,b)=>(Number(b.v.f)||0)-(Number(a.v.f)||0));
  let h='';for(const{k,v}of ps.slice(0,30)){h+='<div class="rk"><span class="nn">'+esc(String(v.n||'?').slice(0,10))+'</span><b>'+fmt(Number(v.f)||0)+'m</b><button class="gb sm" data-act="award" data-arg="'+esc(k)+'|1" style="background:#ffd23f">1</button><button class="gb sm" data-act="award" data-arg="'+esc(k)+'|2" style="background:#d8e0f0">2</button><button class="gb sm" data-act="award" data-arg="'+esc(k)+'|3" style="background:#e8a060">3</button></div>';}
@@ -2321,6 +2326,7 @@ function resize(){
  if(state==='home')camY=-(H-70);
 }
 window.addEventListener('resize',resize);
+
 
 
 
