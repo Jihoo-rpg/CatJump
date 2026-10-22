@@ -2283,6 +2283,7 @@ PANELS.admin=function(){if(!isAdmin())return['관리자','<div class="note">관�
  '<div class="note">🏆 챔피언 캣 지급 (레이싱 1·2·3등). 접속자에서 골라 등수 버튼을 누르세요.</div><div class="panel" style="padding:calc(var(--u)*2)" id="champBox"><div class="note">접속자 불러오는 중…</div></div>'+
  '<div class="li" style="background:#1a2a4a;color:#fff"><span class="em">🙋</span><div class="tx"><b>내 기록 올리기</b><small style="color:#bcd">지금 로그인한 '+esc(session&&session.id||'?')+' 계정</small><input class="inp" id="myVal" placeholder="올릴 기록(m)" inputmode="numeric" style="margin-top:4px"></div><button class="gb sm green" data-act="setMyBest">올리기</button></div>'+
  '<div class="note">🔒 게임 잠그기 (관리자 빼고 아무도 못 해요)</div><div class="li"><span class="em">🔒</span><div class="tx"><input class="inp" id="lockMsg" placeholder="잠금 안내 문구 (비워도 됨)"></div><button class="gb sm pink" data-act="lockOn">잠그기</button><button class="gb sm green" data-act="lockOff">풀기</button></div>'+
+ '<div class="note">🔍 플레이어 찾기 (랭킹에서 사라졌을 때)</div><div class="li"><span class="em">🔍</span><div class="tx"><input class="inp" id="fdIn" placeholder="아이디 또는 닉네임 일부"></div><button class="gb sm blue" data-act="findP">찾기</button></div><div class="panel" style="padding:calc(var(--u)*2)" id="findBox"><div class="note">아이디나 닉네임을 넣고 찾기를 누르세요</div></div>'+
  '<div class="note">📊 기록 수정</div><div class="li"><span class="em">📊</span><div class="tx"><input class="inp" id="sbId" placeholder="아이디 또는 닉네임" style="margin-bottom:4px"><input class="inp" id="sbVal" placeholder="기록(m)" inputmode="numeric"></div><button class="gb sm" data-act="setBest">변경</button></div>'+
  '<div class="note">🗑️ 랭킹 1등 삭제</div><button class="gb sm pink" data-act="delTop" style="margin-bottom:calc(var(--u)*2)">지금 1등 삭제하기</button>'+
  '<div class="note">🧹 랭킹 중복 정리</div><button class="gb sm cream" data-act="dedupe" style="margin-bottom:calc(var(--u)*2)">중복된 아이디 정리하기</button>'+
@@ -2299,6 +2300,12 @@ Object.assign(ACT,{
  unban:async k=>{if(!isAdmin()||!k)return;try{await fbReq('banned/'+fbKey(k),'DELETE');const dv=(await fbReq('bannedDev','GET'))||{};for(const d in dv)if(dv[d]===k)await fbReq('bannedDev/'+fbKey(d),'DELETE');toast('✅ 해제했어요');loadAdmin();}catch(e){toast('실패했어요');}},
  banId:()=>{const id=normId($('banIn')&&$('banIn').value);if(!id){toast('아이디를 입력하세요');return;}if(id===ADMIN_ID){toast('관리자는 정지할 수 없어요');return;}ACT.ban('u_'+fbKey(id));},
  evStart:kind=>{if(!isAdmin())return;fbReq('evp','DELETE')&&0;fbReq('liveEvent','PUT',{kind,seed:(Math.random()*1e9)>>>0,t:Date.now(),delay:4000}).then(()=>{if(kind==='tag')fbReq('tagIt','DELETE').catch(()=>{});toast('⚔️ '+kind+' 시작 신호!');}).catch(()=>toast('실패'));},
+ findP:async()=>{if(!isAdmin())return;const q=String($('fdIn')&&$('fdIn').value||'').trim().toLowerCase();if(!q)return toast('검색어를 입력하세요');const box=$('findBox');box.innerHTML='<div class="note">찾는 중…</div>';
+  try{const[rk,B,O,U]=await Promise.all([fbReq('ranking','GET'),fbReq('banned','GET'),fbReq('bestOverride','GET'),fbReq('users/'+fbKey(normId(q)),'GET').catch(()=>null)]);let h='';
+   for(const k in rk||{}){const v=rk[k]||{};if(!(k.toLowerCase().includes(q)||String(v.nick||'').toLowerCase().includes(q)))continue;
+    h+='<div class="rk"><span class="nn">'+esc(String(v.nick||'(닉네임 없음)'))+' <small style="opacity:.6">'+esc(k)+'</small>'+((B||{})[k]?' <b style="color:#e02a4a">정지됨</b>':'')+'</span><b>'+fmt(Number(v.best)||0)+'m</b>'+((B||{})[k]?'<button class="gb sm green" data-act="unban" data-arg="'+esc(k)+'">해제</button>':'')+'</div>';}
+   if(U)h+='<div class="note">✅ 로그인 계정 '+esc(normId(q))+' 있음 · 저장된 기록 '+fmt(Number(U.save&&U.save.best)||0)+'m · 닉네임 '+esc(String(U.save&&U.save.nick||''))+'</div>';
+   box.innerHTML=h||'<div class="note">랭킹에 없어요. 📊 기록 수정에 이 아이디/닉네임을 넣으면 랭킹에 새로 만들어져요.</div>';}catch(e){box.innerHTML='<div class="note">불러오지 못했어요</div>';}},
  lockOn:()=>{if(!isAdmin())return;const m=($('lockMsg')&&$('lockMsg').value||'').slice(0,60);fbReq('gameLock','PUT',{on:true,msg:m,t:Date.now()}).then(()=>toast('🔒 게임을 잠갔어요 (3초 안에 적용)')).catch(()=>toast('실패'));},
  lockOff:()=>{if(!isAdmin())return;fbReq('gameLock','DELETE').then(()=>toast('🔓 잠금을 풀었어요')).catch(()=>toast('실패'));},
  evStop:()=>{if(!isAdmin())return;fbReq('liveEvent','DELETE').then(()=>toast('⏹ 이벤트 종료')).catch(()=>{});},
@@ -2308,8 +2315,8 @@ Object.assign(ACT,{
  setBest:async()=>{if(!isAdmin())return;const raw=String($('sbId')&&$('sbId').value||'').trim(),id=normId(raw),v=Math.max(0,parseInt($('sbVal')&&$('sbVal').value||'0',10));if(!id)return toast('아이디나 닉네임을 입력하세요');
   try{const rk=await fbReq('ranking','GET')||{};const keys=Object.keys(rk).filter(k=>k==='u_'+fbKey(id)||String((rk[k]||{}).nick||'').trim().toLowerCase()===raw.toLowerCase());
    const u=await fbReq('users/'+fbKey(id),'GET').catch(()=>null);if(u&&!keys.includes('u_'+fbKey(id)))keys.push('u_'+fbKey(id));
-   if(!keys.length){toast('그런 아이디/닉네임이 랭킹에 없어요');return;}const t=Date.now();
-   for(const k of keys){const old=rk[k]||{};await fbReq('ranking/'+fbKey(k),'PUT',{nick:old.nick||(u&&u.save&&u.save.nick)||raw,breed:old.breed||'cheese',outfit:old.outfit||'none',best:v,t});await fbReq('bestOverride/'+fbKey(k),'PUT',{best:v,t});}
+   if(!keys.length)keys.push('u_'+fbKey(id));const t=Date.now();
+   for(const k of keys){const old=rk[k]||{};await fbReq('ranking/'+fbKey(k),'PUT',{nick:old.nick||(u&&u.save&&u.save.nick)||raw,breed:old.breed||'cheese',outfit:old.outfit||'none',best:v,t});await fbReq('banned/'+fbKey(k),'DELETE').catch(()=>{});await fbReq('bestOverride/'+fbKey(k),'PUT',{best:v,t});}
    if(u&&u.save){await fbReq('users/'+fbKey(id)+'/save/best','PUT',v);await fbReq('users/'+fbKey(id)+'/save/_t','PUT',t);}
    rankCache='';toast('✅ '+raw+' 기록을 '+fmt(v)+'m로 고정했어요 ('+keys.length+'곳)');loadAdmin();}catch(e){toast('실패');}},
  delTop:async()=>{if(!isAdmin())return;if(!confirm('지금 랭킹 1등을 삭제할까요?'))return;try{const rk=await fbReq('ranking','GET')||{};let top=null;for(const k in rk){const v=rk[k]||{};const bb=Math.max(0,Math.floor(Number(v.best)||0));if(!top||bb>top.bb)top={k,bb,nick:v.nick||'?'};}if(!top){toast('랭킹이 비어 있어요');return;}await fbReq('ranking/'+fbKey(top.k),'DELETE');toast('🗑️ 1등 '+top.nick+' ('+top.bb+'m) 삭제');loadAdmin();}catch(e){toast('실패');}},
