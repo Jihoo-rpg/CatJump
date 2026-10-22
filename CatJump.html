@@ -1698,17 +1698,19 @@ function showNewKing(nick,best,breed,outfit,me,rank){const el=$('crown');rank=ra
 function rankUID(){return (typeof session!=='undefined'&&session&&session.id)?('u_'+fbKey(session.id)):UID;}
 async function applyOverride(){if(!FB)return;const ks=[rankUID(),UID].filter(Boolean);for(const k of ks){try{const o=await fbReq('bestOverride/'+fbKey(k),'GET');if(o&&o.t&&save.ovT!==o.t){save.ovT=o.t;save.best=Math.max(0,Math.floor(Number(o.best)||0));persist();if(state==='home')refreshHome();}}catch(e){}}}
 async function submitScore(){const RU=rankUID();if(!DB||!RU)return;await applyOverride();if(save.best<1)return;setTimeout(checkTop,1500);try{await DB.collection('ranking').doc(RU).set({nick:(save.nick||'이름없는 냥이').slice(0,10),best:save.best,breed:save.breed,outfit:save.outfit,t:Date.now()});if(UID&&UID!==RU)await fbReq('ranking/'+fbKey(UID),'DELETE').catch(()=>{});}catch(e){}}
-let rankCache='',rankAt=0;
+let rankCache='',rankAt=0;try{rankCache=localStorage.getItem('nyangjump_rankc')||'';}catch(e){}
+function fillRankImgs(){const ims=[...document.querySelectorAll('#rankBox img[data-h]')];let i=0;(function step(){const t=performance.now();while(i<ims.length&&performance.now()-t<8){const im=ims[i++],[b,o]=im.dataset.h.split('|');im.src=headURL(b,o);im.removeAttribute('data-h');}if(i<ims.length)requestAnimationFrame(step);})();}
 async function loadRank(){
  const box=$('rankBox');if(!box)return;
  if(!DB){box.innerHTML='<div class="note">온라인에 연결되지 않았어요. GitHub에 올렸다면 코드 맨 위 FIREBASE_URL에 Firebase 주소를 넣어 주세요. 혼자 하는 플레이와 기록 저장은 그대로 돼요.</div>';return;}
- try{await submitScore();const s=await DB.collection('ranking').orderBy('best','desc').limit(50).get();
+ if(rankCache&&box.innerHTML.indexOf('rk')<0){box.innerHTML=rankCache;fillRankImgs();}
+ try{submitScore();const[s,BN0]=await Promise.all([DB.collection('ranking').orderBy('best','desc').limit(60).get(),FB?fbReq('banned','GET').catch(()=>null):Promise.resolve(null)]);
   if(!$('rankBox'))return;
   if(!s.docs.length){$('rankBox').innerHTML='<div class="note">아직 아무도 기록이 없어요. 첫 번째 주인공이 되어 보세요!</div>';return;}
-  let html='';const BNs=FB?((await fbReq('banned','GET').catch(()=>null))||{}):{};const seen={};const rows=s.docs.filter(d=>{const v=d.data()||{};if(BNs[d.id])return false;if(isBannedName(d.id)||isBannedName(v.nick)){if(FB)fbReq('ranking/'+fbKey(d.id),'DELETE').catch(()=>{});return false;}const nk=String(v.nick||'').trim().toLowerCase();const bb=Math.max(0,Math.floor(Number(v.best)||0));if(seen[nk]!==undefined){if(bb<=seen[nk])return false;}seen[nk]=bb;return true;}).map(d=>{let bb=Math.max(0,Math.floor(Number((d.data()||{}).best)||0));if(bb>=100000){bb=22000;if(FB)fbReq('ranking/'+fbKey(d.id)+'/best','PUT',22000).catch(()=>{});}return{d,bb};}).sort((a,b)=>b.bb-a.bb);rows.forEach(({d,bb},i)=>{const v=d.data()||{},best=bb,nick=typeof v.nick==='string'?v.nick.slice(0,10):'냥이',
-   b=BREED[v.breed]?v.breed:'cheese',o=OUTFIT[v.outfit]?v.outfit:'none',me=d.id===UID;
-   html+='<div class="rk'+(me?' me':'')+'"><span class="no">'+(i<3?['🥇','🥈','🥉'][i]:i+1)+'</span><img src="'+headURL(b,o)+'" alt=""><span class="nn">'+esc(nick)+(me?' (나)':'')+'</span><b>'+fmt(best)+'m</b></div>';});
-  rankAt=Date.now();if(html!==rankCache){rankCache=html;$('rankBox').innerHTML=html;}
+  let html='';const BNs=BN0||{};const seen={};const rows=s.docs.filter(d=>{const v=d.data()||{};if(BNs[d.id])return false;if(isBannedName(d.id)||isBannedName(v.nick)){if(FB)fbReq('ranking/'+fbKey(d.id),'DELETE').catch(()=>{});return false;}const nk=String(v.nick||'').trim().toLowerCase();const bb=Math.max(0,Math.floor(Number(v.best)||0));if(seen[nk]!==undefined){if(bb<=seen[nk])return false;}seen[nk]=bb;return true;}).map(d=>{let bb=Math.max(0,Math.floor(Number((d.data()||{}).best)||0));if(bb>=100000){bb=22000;if(FB)fbReq('ranking/'+fbKey(d.id)+'/best','PUT',22000).catch(()=>{});}return{d,bb};}).sort((a,b)=>b.bb-a.bb);rows.forEach(({d,bb},i)=>{const v=d.data()||{},best=bb,nick=typeof v.nick==='string'?v.nick.slice(0,10):'냥이',
+   b=BREED[v.breed]?v.breed:'cheese',o=OUTFIT[v.outfit]?v.outfit:'none',me=d.id===rankUID()||d.id===UID;
+   html+='<div class="rk'+(me?' me':'')+'"><span class="no">'+(i<3?['🥇','🥈','🥉'][i]:i+1)+'</span><img data-h="'+b+'|'+o+'" src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt=""><span class="nn">'+esc(nick)+(me?' (나)':'')+'</span><b>'+fmt(best)+'m</b></div>';});
+  rankAt=Date.now();if(html!==rankCache){rankCache=html;try{localStorage.setItem('nyangjump_rankc',html);}catch(e){}$('rankBox').innerHTML=html;}fillRankImgs();
  }catch(e){if($('rankBox'))$('rankBox').innerHTML='<div class="note">랭킹을 불러오지 못했어요. 잠시 후 다시 열어 주세요.</div>';}
 }
 
@@ -2146,7 +2148,7 @@ PANELS.online=function(){
  const tabs='<div class="tabs"><button class="gb sm'+(onlineTab==='rank'?' act':'')+'" data-act="otab" data-arg="rank">🏆 랭킹</button><button class="gb sm'+(onlineTab==='friend'?' act':'')+'" data-act="otab" data-arg="friend">👫 친구</button><button class="gb sm'+(onlineTab==='vs'?' act':'')+'" data-act="otab" data-arg="vs">⚔️ 대결</button></div>';
  const off=!ROOM?(FB?'<div class="note">서버에 연결하는 중이에요…</div>':'<div class="note">온라인에 연결되지 않았어요. GitHub에 올렸다면 코드 맨 위 FIREBASE_URL에 Firebase 주소를 넣어 주세요.</div>'):'';
  let h='';
- if(onlineTab==='rank'){queueMicrotask(()=>{if(rankCache&&$('rankBox'))$('rankBox').innerHTML=rankCache;});if(Date.now()-rankAt>15000)setTimeout(loadRank,0);
+ if(onlineTab==='rank'){queueMicrotask(()=>{if(rankCache&&$('rankBox')){$('rankBox').innerHTML=rankCache;fillRankImgs();}});if(Date.now()-rankAt>15000)setTimeout(loadRank,0);
   const live=lobbyPeersList.slice().sort((a,b)=>(Number(b.presence.best)||0)-(Number(a.presence.best)||0));
   h='<div class="li"><span class="em">🏆</span><div class="tx"><b>내 최고 기록 '+fmt(save.best)+'m</b><small>닉네임: '+esc(save.nick||'이름없는 냥이')+' (프로필에서 변경)</small></div></div>'+
    '<div class="note">전체 랭킹 (가장 높이 올라간 순)</div><div class="panel" style="padding:calc(var(--u)*2)" id="rankBox"><div class="note">랭킹 불러오는 중…</div></div>'+
