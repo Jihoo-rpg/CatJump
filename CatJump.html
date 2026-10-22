@@ -1279,9 +1279,9 @@ function genChunk(y0){
  if(fl>80)opts.push(['wallsaw',.7+1.1*d]);
  if(!hard&&fl>25&&lastCannon-ym>1600)opts.push(['cannon',1.1]);
  if(fl>250||hard)opts.push(['combo',hard?2.5:1.3*d]);
- if(fl>=900)opts.push(['mine',1.3+.6*d]);
- if(fl>=1200)opts.push(['spinbar',1]);
- if(fl>=2000)opts.push(['arm',1.6]);
+ if(fl>=900)opts.push(['mine',.8+.3*d]);
+ if(fl>=1200)opts.push(['spinbar',.8]);
+ if(fl>=2000)opts.push(['arm',1]);
  let type=pickW(opts);const side=gr()<.5?'L':'R',other=side==='L'?'R':'L';
  const saw=(bx,by,ax,amp,sp)=>({type:'saw',bx,by,x:bx,y:by,r:9,ax,amp:amp||0,sp:sp||0,ph:grnd(0,6),rot:0});
  const midOK=y=>midFree(y);
@@ -1527,10 +1527,10 @@ function drawSpikes(h,cy){const n=Math.max(1,Math.floor((h.y2-h.y1)/10));const i
 let meteorT=3;
 function meteorTick(dt){if(mode==='boss'||mode==='versus'||pumpkinT>0||runFloor<600||!cat||cat.mode==='launch')return;
  if(calm.some(([a,b])=>camY<b&&camY+H>a))return;meteorT-=dt;if(meteorT>0)return;
- const k=clamp((runFloor-600)/2400,0,1);meteorT=lerp(5,2.4,k)*rnd(.85,1.15)*(mode==='hard'?.8:1);
- const live=hz.filter(h=>h.type==='meteor').length;if(live>=(k>.6?3:2))return;
+ const k=clamp((runFloor-600)/3400,0,1);meteorT=lerp(8,4.2,k)*rnd(.85,1.2)*(mode==='hard'?.8:1);
+ const live=hz.filter(h=>h.type==='meteor').length;if(live>=(k>.7?2:1))return;
  let x=rnd(LX+18,RX-18);for(let t=0;t<4;t++){if(!hz.some(h=>h.type==='meteor'&&Math.abs(h.x-x)<30))break;x=rnd(LX+18,RX-18);}
- hz.push({type:'meteor',x,y:camY-24,warn:1.6-.4*k,vy:lerp(40,72,k),rot:0});sfx('click');}
+ hz.push({type:'meteor',x,y:camY-24,warn:1.9-.3*k,vy:lerp(36,58,k),rot:0});sfx('click');}
 function laserSpan(h){return h.span==='L'?[LX,MX+18]:h.span==='R'?[MX-18,RX]:[LX,RX];}
 const METEOR=pixFn(17,17,(x,y)=>{const dx=x-8,dy=y-8,d=Math.hypot(dx,dy)+Math.sin(Math.atan2(dy,dx)*5)*.7;if(d>7.6)return null;if(d>6.6)return'#2a120a';
  if(Math.hypot(dx+2,dy-1)<1.8||Math.hypot(dx-2.5,dy+2.5)<1.4||Math.hypot(dx-1,dy-3.5)<1.2)return'#4a2a1a';const lit=(dx+dy)<-2;return lit?'#c8784a':(d>5?'#5a2a14':'#8a4a2a');});
