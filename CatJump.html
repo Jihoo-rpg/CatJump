@@ -110,6 +110,18 @@ button:focus-visible{outline:calc(var(--u)*1.5) solid #fff;outline-offset:var(--
 .skb{position:absolute;right:calc(var(--u)*5);width:calc(var(--u)*22);height:calc(var(--u)*22);border-radius:50%;pointer-events:auto;display:none;align-items:center;justify-content:center;padding:0;font-family:'Black Han Sans','Jua',sans-serif;font-size:calc(var(--u)*10);color:#fff;border:var(--o) solid var(--ink);box-shadow:0 0 calc(var(--u)*4) rgba(255,255,255,.5),0 var(--o) 0 var(--ink);background:radial-gradient(circle at 40% 35%,#8ab8ff,#2a4ad8);}
 .tagbtn{position:absolute;bottom:calc(var(--u)*8);width:calc(var(--u)*26);height:calc(var(--u)*26);border-radius:50%;pointer-events:auto;display:none;align-items:center;justify-content:center;padding:0;font-size:calc(var(--u)*12);color:#fff;background:rgba(40,50,90,.8);border:var(--o) solid var(--ink);box-shadow:0 var(--o) 0 var(--ink);}
 #tagL{left:calc(var(--u)*5);}#tagR{left:calc(var(--u)*34);}#tagJ{right:calc(var(--u)*5);background:rgba(90,60,120,.85);}
+.tcol{display:flex;align-items:stretch;gap:calc(var(--u)*2);margin-bottom:calc(var(--u)*4)}.tside{flex:1;min-width:0;background:#fff;border:var(--o) solid var(--ink);border-radius:calc(var(--u)*5);padding:calc(var(--u)*3);box-shadow:0 var(--o) 0 var(--ink)}.tside.me{background:#fff8e6}.tside.ok{background:#e4f8dc;border-color:#2a8a2a}
+.th{font-family:'Black Han Sans','Jua',sans-serif;font-size:calc(var(--u)*7.5);margin-bottom:calc(var(--u)*2);display:flex;justify-content:space-between;align-items:center;gap:4px}.tst{font-family:Jua,sans-serif;font-size:calc(var(--u)*5.5);color:#8a6a5a}.ok .tst{color:#2a8a2a}
+.tlist{display:flex;flex-direction:column;gap:calc(var(--u)*1.5);min-height:calc(var(--u)*14)}.tc{display:flex;align-items:center;gap:4px;font-size:calc(var(--u)*6.2);background:#f6efe6;border-radius:calc(var(--u)*3);padding:calc(var(--u)*1.2) calc(var(--u)*2);flex-wrap:wrap}.tc img{width:calc(var(--u)*10);height:calc(var(--u)*10);image-rendering:pixelated}.tc em{font-style:normal;font-size:85%;color:#c86a2a;margin-left:auto}.taw{font-size:80%;color:#fff;background:#c81a5a;border-radius:6px;padding:0 4px}
+.tnone{color:#a89a8a;font-size:calc(var(--u)*6);text-align:center;padding:calc(var(--u)*3) 0}.tswap{align-self:center;font-size:calc(var(--u)*11);color:#8a5ad8}
+.ttabs{display:flex;gap:calc(var(--u)*1);background:#e8dccc;border-radius:calc(var(--u)*5);padding:calc(var(--u)*1)}.ttabs button{flex:1;border:0;background:transparent;font-family:Jua,sans-serif;font-size:calc(var(--u)*6.3);padding:calc(var(--u)*2.5) 0;border-radius:calc(var(--u)*4);color:#6a4a3a;cursor:pointer}.ttabs button.on{background:#fff;color:var(--ink);box-shadow:0 1px 0 var(--ink)}
+.tpane{background:#fff;border:var(--o) solid var(--ink);border-radius:calc(var(--u)*5);padding:calc(var(--u)*4);margin:calc(var(--u)*2) 0 calc(var(--u)*4);min-height:calc(var(--u)*50)}
+.thave{font-size:calc(var(--u)*6.3);margin-bottom:calc(var(--u)*3);color:#6a4a3a}.tin{display:flex;gap:calc(var(--u)*2)}.tin .inp{flex:1;font-size:calc(var(--u)*8)}.tq{display:flex;flex-wrap:wrap;gap:calc(var(--u)*1.5);margin-top:calc(var(--u)*3)}
+.tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:calc(var(--u)*2)}.tcard{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;background:#f6efe6;border:var(--o) solid #c8b8a8;border-radius:calc(var(--u)*4);padding:calc(var(--u)*2.5) calc(var(--u)*1);font-family:Jua,sans-serif;font-size:calc(var(--u)*5.6);cursor:pointer;color:var(--ink)}.tcard img{width:calc(var(--u)*18);height:calc(var(--u)*18);image-rendering:pixelated}.tcard .te{font-size:calc(var(--u)*14)}.tcard.on{background:#dff6d8;border-color:#2a8a2a}.tcard i{position:absolute;top:2px;right:4px;font-style:normal;color:#2a8a2a}
+.tnote{font-size:calc(var(--u)*5.4);color:#9a8a7a;margin-top:calc(var(--u)*2)}.tbar{display:flex;gap:calc(var(--u)*2)}.tbar .gb:first-child{flex:1;font-size:calc(var(--u)*9)}
+.tbig{display:flex;flex-direction:column;align-items:center;gap:calc(var(--u)*2);font-size:calc(var(--u)*20);padding:calc(var(--u)*6) 0}.tbig b{font-size:calc(var(--u)*8.5)}.tbig small{font-size:calc(var(--u)*6);color:#8a6a5a}
+#trPop{position:absolute;left:calc(var(--u)*6);right:calc(var(--u)*6);top:calc(var(--u)*6);z-index:70;background:#fff;border:var(--o) solid var(--ink);border-radius:calc(var(--u)*6);box-shadow:0 calc(var(--u)*2) 0 var(--ink),0 0 calc(var(--u)*20) rgba(106,176,255,.7);padding:calc(var(--u)*4);display:flex;align-items:center;gap:calc(var(--u)*3);animation:trIn .35s ease-out}#trPop .em{font-size:calc(var(--u)*16)}#trPop .tx{flex:1;min-width:0}#trPop b{display:block;font-size:calc(var(--u)*7.5)}#trPop small{font-size:calc(var(--u)*5.6);color:#8a6a5a}
+@keyframes trIn{from{transform:translateY(-120%)}to{transform:none}}
 .trI{display:inline-flex;align-items:center;gap:3px;background:#fff;border:var(--o) solid #2a1626;border-radius:calc(var(--u)*3);padding:calc(var(--u)*1) calc(var(--u)*2.5);font-size:calc(var(--u)*6)}.trI img{width:calc(var(--u)*10);height:calc(var(--u)*10);image-rendering:pixelated}.trI small{color:#a86a2a}
 .skb.aw.nk{background:radial-gradient(circle at 40% 35%,#ffe0f0,#c81a5a);box-shadow:0 0 calc(var(--u)*6) #ff8ac8,0 var(--o) 0 var(--ink);}
 .skb.aw{background:radial-gradient(circle at 40% 35%,#fff6a0,#2a4ad8);box-shadow:0 0 calc(var(--u)*6) #ffe14a,0 var(--o) 0 var(--ink);}
@@ -311,7 +323,7 @@ var FIREBASE_URL='https://cat-jump-3afbb-default-rtdb.firebaseio.com';
 <script>
 (function(){
 'use strict';
-const APP_VER='2026-10-23-0900';
+const APP_VER='2026-10-23-0915';
 const W=180;let H=320;
 const LX=16,RX=164,MX=90,FPX=24,CH=132,SEG=160,GRAV=820,CLING=10,GROUND_Y=-13;const CAT_SC=.8;
 let S=2;const sn=v=>Math.round(v*S)/S;
@@ -2004,11 +2016,14 @@ function lobbyUpdate(extra){if(!ROOM)return;const o=Object.assign(myInfo(),extra
 function softRerender(){const now=Date.now();if(now-lobbyRR<500)return;lobbyRR=now;if(curPanel==='online'&&onlineTab!=='rank'&&$('modal').classList.contains('on')){const inp=$('fcIn'),rc=$('rcIn'),a=inp&&inp.value,b=rc&&rc.value;rerender();if($('fcIn')&&a)$('fcIn').value=a;if($('rcIn')&&b)$('rcIn').value=b;}}
 /* ================= 🤝 거래 ================= */
 let TR=null,trReq=null,trSeen={},trTimer=null,trLast='';
-const TR_EMPTY=()=>({c:0,g:0,cats:[],sk:[]});
+const TR_EMPTY=()=>({c:0,g:0,cats:[],sk:[],aw:[]});
+const skAw=id=>id==='blast'?!!save.blastAwake:id==='rocket'?!!save.rocketAwake:false;
+const AWN={blast:'🌸 낙화참',rocket:'🔥 대포 각성'};
+let trTab='c';
 const trCatOK=id=>{const b=BREED[id];return b&&b.price>0&&!b.ms&&!b.secret&&!b.champ&&!b.hidden;};
 function trMyCats(){return (save.breeds||[]).filter(trCatOK);}
 function trMySk(){return (save.skills||[]).filter(id=>SKILLS[id]);}
-function trOff(d,side){const o=(d&&d['o'+side])||{};return{c:Math.max(0,Math.floor(Number(o.c)||0)),g:Math.max(0,Math.floor(Number(o.g)||0)),cats:Array.isArray(o.cats)?o.cats.filter(trCatOK):[],sk:Array.isArray(o.sk)?o.sk.filter(id=>SKILLS[id]):[]};}
+function trOff(d,side){const o=(d&&d['o'+side])||{};return{c:Math.max(0,Math.floor(Number(o.c)||0)),g:Math.max(0,Math.floor(Number(o.g)||0)),cats:Array.isArray(o.cats)?o.cats.filter(trCatOK):[],sk:Array.isArray(o.sk)?o.sk.filter(id=>SKILLS[id]):[],aw:Array.isArray(o.aw)?o.aw.filter(id=>AWN[id]&&Array.isArray(o.sk)&&o.sk.includes(id)):[]};}
 function trHash(d){return JSON.stringify([trOff(d,'a'),trOff(d,'b')]);}
 const trOther=()=>TR&&TR.me==='a'?'b':'a';
 function trMe(){return{fc:save.fcode,nick:(save.nick||'냥이').slice(0,10),id:evId(),own:{cats:trMyCats(),sk:trMySk()}};}
@@ -2018,10 +2033,10 @@ async function trPoll(){if(!TR||!FB||TR.busy)return;TR.busy=true;try{const d=awa
   if(!d){trStop();toast('거래가 없어졌어요');if(curPanel==='trade')closePanelSafe();return;}
   if(d.st==='open'&&d.acc&&d.acc.a&&d.acc.a===d.acc.b&&d.acc.a===trHash(d)&&!(save.trDone||{})[TR.id])trExec(d);
   if(d.st==='open'&&d.done&&d.done.a&&d.done.b)fbReq('trades/'+TR.id+'/st','PUT','done').catch(()=>{});
-  const k=JSON.stringify(d);if(k!==trLast){trLast=k;if(curPanel==='trade')rerender();}}catch(e){}finally{if(TR)TR.busy=false;}}
+  const k=JSON.stringify(d);if(k!==trLast){const ae=document.activeElement;if(ae&&ae.tagName==='INPUT'&&$('mbody').contains(ae))return;trLast=k;if(curPanel==='trade')rerender();}}catch(e){}finally{if(TR)TR.busy=false;}}
 function closePanelSafe(){try{curPanel=null;show(state==='home'?'home':null);refreshHome();}catch(e){}}
 function trExec(d){const me=TR.me,ot=trOther(),mine=trOff(d,me),his=trOff(d,ot);
- if(save.coins<mine.c||save.gems<mine.g||mine.cats.some(id=>!save.breeds.includes(id))||mine.sk.some(id=>!ownSkill(id))){fbReq('trades/'+TR.id+'/st','PUT','cancel').catch(()=>{});toast('내 물건이 부족해서 거래가 취소됐어요');return;}
+ if(save.coins<mine.c||save.gems<mine.g||mine.cats.some(id=>!save.breeds.includes(id))||mine.sk.some(id=>!ownSkill(id))||mine.aw.some(id=>!skAw(id))){fbReq('trades/'+TR.id+'/st','PUT','cancel').catch(()=>{});toast('내 물건이 부족해서 거래가 취소됐어요');return;}
  save.trDone=save.trDone||{};save.trDone[TR.id]=1;
  save.coins-=mine.c;save.gems-=mine.g;
  for(const id of mine.cats){save.breeds=save.breeds.filter(x=>x!==id);if(save.breed===id)save.breed='cheese';}
@@ -2029,51 +2044,71 @@ function trExec(d){const me=TR.me,ot=trOther(),mine=trOff(d,me),his=trOff(d,ot);
  save.coins+=his.c;save.gems+=his.g;
  for(const id of his.cats)if(!save.breeds.includes(id))save.breeds.push(id);
  for(const id of his.sk){if(save.skGone)delete save.skGone[id];giveSkill(id);}
+ for(const id of his.aw){if(id==='blast')save.blastAwake=true;if(id==='rocket')save.rocketAwake=true;}
  persist();skillShown='';refreshHome();fbReq('trades/'+TR.id+'/done/'+me,'PUT',1).catch(()=>{});
  sfx('buy');vib([60,40,120]);toast('🤝 거래 완료!');
  const el=$('crown');if(el){el.style.setProperty('--rc','#6ae06a');el.innerHTML='<div class="cr-rays"></div><div class="cr-box"><div class="cr-top">🤝 거래 완료!</div><div class="cr-nick" style="font-size:calc(var(--u)*7.5)">받은 것: '+trList(his)+'</div></div>'+Array.from({length:40},(_,i)=>'<i class="cf" style="left:'+(Math.random()*100)+'%;background:'+['#6ae06a','#ffe14a','#4ab0ff','#ffffff'][i%4]+';animation-delay:'+(Math.random()*.6)+'s"></i>').join('');el.classList.remove('on');void el.offsetWidth;el.classList.add('on');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('on'),3800);}}
-function trList(o){const a=[];if(o.c)a.push('🪙'+fmt(o.c));if(o.g)a.push('💎'+fmt(o.g));for(const id of o.cats)a.push('🐱'+BREED[id].name);for(const id of o.sk)a.push(SKILLS[id].e+SKILLS[id].n);return a.length?esc(a.join(' · ')):'없음';}
+function trList(o){const a=[];if(o.c)a.push('🪙'+fmt(o.c));if(o.g)a.push('💎'+fmt(o.g));for(const id of o.cats)a.push('🐱'+BREED[id].name);for(const id of o.sk)a.push(SKILLS[id].e+SKILLS[id].n+(o.aw.includes(id)?'('+AWN[id]+' 각성)':''));return a.length?esc(a.join(' · ')):'없음';}
+function trSetAmt(k){if(!TR||!TR.d)return;const el=$(k==='c'?'trCin':'trGin');if(!el)return;let v=Math.floor(Number(String(el.value).replace(/[^0-9]/g,''))||0);const max=k==='c'?save.coins:save.gems;if(v>max){v=max;toast((k==='c'?'코인':'보석')+'은 최대 '+fmt(max)+'까지 넣을 수 있어요');}const o=trOff(TR.d,TR.me);o[k]=v;el.blur();sfx('click');trPutMine(o);}
 async function trPutMine(o){if(!TR||!TR.d||TR.d.st!=='open')return;TR.d['o'+TR.me]=o;if(TR.d.acc)TR.d.acc=null;trLast='';rerender();try{await fbReq('trades/'+TR.id+'/o'+TR.me,'PUT',o);await fbReq('trades/'+TR.id+'/acc','DELETE');}catch(e){}}
-function trBox(title,o,acc,isMe,oth){const items=[];
- if(o.c)items.push('<span class="trI">🪙 '+fmt(o.c)+'</span>');if(o.g)items.push('<span class="trI">💎 '+fmt(o.g)+'</span>');
- for(const id of o.cats)items.push('<span class="trI"><img src="'+headURL(id,'none')+'" alt="">'+esc(BREED[id].name)+(!isMe&&save.breeds.includes(id)?' <small>(이미 있음)</small>':'')+(isMe&&oth&&oth.own&&(oth.own.cats||[]).includes(id)?' <small>(상대 이미 있음)</small>':'')+'</span>');
- for(const id of o.sk)items.push('<span class="trI">'+SKILLS[id].e+' '+esc(SKILLS[id].n)+(!isMe&&ownSkill(id)?' <small>(이미 있음)</small>':'')+'</span>');
- return '<div class="panel" style="padding:calc(var(--u)*3);margin-bottom:calc(var(--u)*3);'+(acc?'background:#dff6d8;border-color:#2a9a2a':'')+'"><div class="note" style="margin:0 0 4px"><b>'+title+'</b>'+(acc?' <b style="color:#2a9a2a">✅ 수락</b>':'')+'</div><div style="display:flex;flex-wrap:wrap;gap:calc(var(--u)*2)">'+(items.join('')||'<span class="note" style="margin:0">아직 아무것도 안 올렸어요</span>')+'</div></div>';}
+function trChips(o,isMe,oth){const it=[];
+ if(o.c)it.push('<span class="tc">🪙 '+fmt(o.c)+'</span>');if(o.g)it.push('<span class="tc">💎 '+fmt(o.g)+'</span>');
+ for(const id of o.cats){const dup=isMe?(oth&&oth.own&&(oth.own.cats||[]).includes(id)):save.breeds.includes(id);it.push('<span class="tc"><img src="'+headURL(id,'none')+'" alt="">'+esc(BREED[id].name)+(dup?'<em>보유중</em>':'')+'</span>');}
+ for(const id of o.sk){const dup=isMe?(oth&&oth.own&&(oth.own.sk||[]).includes(id)):ownSkill(id);it.push('<span class="tc">'+SKILLS[id].e+' '+esc(SKILLS[id].n)+(o.aw.includes(id)?'<b class="taw">'+AWN[id]+' 각성</b>':'')+(dup?'<em>보유중</em>':'')+'</span>');}
+ return it.join('')||'<span class="tnone">비어 있음</span>';}
 PANELS_EXTRA_TRADE=function(){if(!TR)return['🤝 거래','<div class="note">거래가 끝났어요.</div>'];const d=TR.d;
  if(!d)return['🤝 거래','<div class="note">거래방에 연결하는 중…</div>'];
- const me=TR.me,ot=trOther(),oi=d[ot]||null,on=oi&&oi.nick?esc(oi.nick):'상대';
- if(d.st==='cancel'){return['🤝 거래','<div class="li" style="background:#ffd8d8"><span class="em">❌</span><div class="tx"><b>거래가 취소됐어요</b></div></div><button class="gb green" data-act="trClose" style="width:100%">닫기</button>'];}
- if(d.st==='done'||(save.trDone||{})[TR.id]){const his=trOff(d,ot),mine=trOff(d,me);return['🤝 거래 완료!','<div class="li" style="background:#dff6d8"><span class="em">🎉</span><div class="tx"><b>'+on+'님과 거래 완료!</b><small>받은 것: '+trList(his)+'<br>준 것: '+trList(mine)+'</small></div></div><button class="gb green" data-act="trClose" style="width:100%">닫기</button>'];}
- if(d.st==='wait')return['🤝 거래','<div class="li"><span class="em">⏳</span><div class="tx"><b>'+esc(d.bn||'상대')+'님이 수락하기를 기다리는 중…</b><small>상대가 거래 요청을 수락하면 거래방이 열려요</small></div></div><button class="gb cream" data-act="trCancel" style="width:100%">요청 취소</button>'];
- const mo=trOff(d,me),ho=trOff(d,ot),acc=d.acc||{},myAcc=acc[me]===trHash(d),hisAcc=acc[ot]===trHash(d);
- const cats=trMyCats(),sks=trMySk();
- let h='<div class="note" style="text-align:center">🤝 <b>'+esc((save.nick||'나').slice(0,10))+'</b> ⇄ <b>'+on+'</b> · 둘 다 수락하면 바로 교환돼요</div>'+
-  trBox('📦 '+on+'님이 줄 것',ho,hisAcc,false)+trBox('🎁 내가 줄 것',mo,myAcc,true,oi)+
-  '<div class="note">🪙 코인 (보유 '+fmt(save.coins)+')</div><div class="row" style="gap:calc(var(--u)*1.5);flex-wrap:wrap">'+[-1000,-100,100,1000].map(v=>'<button class="gb sm '+(v<0?'cream':'orange')+'" data-act="trC" data-arg="'+v+'">'+(v>0?'+':'')+v+'</button>').join('')+'<button class="gb sm cream" data-act="trC" data-arg="0">0</button></div>'+
-  '<div class="note">💎 보석 (보유 '+fmt(save.gems)+')</div><div class="row" style="gap:calc(var(--u)*1.5);flex-wrap:wrap">'+[-10,-1,1,10].map(v=>'<button class="gb sm '+(v<0?'cream':'blue')+'" data-act="trG" data-arg="'+v+'">'+(v>0?'+':'')+v+'</button>').join('')+'<button class="gb sm cream" data-act="trG" data-arg="0">0</button></div>'+
-  '<div class="note">🐱 고양이 넣기 (누르면 넣기/빼기 · 기록 보상·챔피언·비밀 고양이는 거래 불가)</div><div style="display:flex;flex-wrap:wrap;gap:calc(var(--u)*2)">'+(cats.length?cats.map(id=>{const inO=mo.cats.includes(id);return '<button class="gb sm '+(inO?'green':'cream')+'" data-act="trCat" data-arg="'+id+'" style="display:flex;align-items:center;gap:3px"><img src="'+headURL(id,'none')+'" alt="" style="width:calc(var(--u)*10);height:calc(var(--u)*10);image-rendering:pixelated">'+esc(BREED[id].name)+(inO?' ✔':'')+'</button>';}).join(''):'<span class="note" style="margin:0">거래할 수 있는 고양이가 없어요</span>')+'</div>'+
-  '<div class="note">✨ 스킬 넣기 (주면 내 스킬과 그 각성이 사라져요)</div><div style="display:flex;flex-wrap:wrap;gap:calc(var(--u)*2)">'+(sks.length?sks.map(id=>{const inO=mo.sk.includes(id);return '<button class="gb sm '+(inO?'green':'cream')+'" data-act="trSk" data-arg="'+id+'">'+SKILLS[id].e+' '+esc(SKILLS[id].n)+(inO?' ✔':'')+'</button>';}).join(''):'<span class="note" style="margin:0">스킬이 없어요</span>')+'</div>'+
-  '<div class="row" style="margin-top:calc(var(--u)*4)"><button class="gb '+(myAcc?'cream':'green')+'" data-act="trAcc" style="flex:2">'+(myAcc?'수락 취소':'✅ 수락')+'</button><button class="gb pink" data-act="trCancel" style="flex:1">거래 취소</button></div>'+
-  '<div class="note" style="text-align:center">'+(myAcc&&hisAcc?'교환 중…':myAcc?on+'님의 수락을 기다리는 중…':hisAcc?on+'님이 수락했어요! 내용 확인하고 수락하세요':'물건을 바꾸면 수락이 풀려요')+'</div>';
- return['🤝 거래',h];};
+ const me=TR.me,ot=trOther(),oi=d[ot]||null,on=oi&&oi.nick?esc(oi.nick):esc(d.bn||'상대');
+ if(d.st==='cancel')return['🤝 거래','<div class="tbig">❌<b>거래가 취소됐어요</b></div><button class="gb green" data-act="trClose" style="width:100%">닫기</button>'];
+ if(d.st==='done'||(save.trDone||{})[TR.id]){const his=trOff(d,ot),mine=trOff(d,me);return['🤝 거래 완료','<div class="tbig">🎉<b>'+on+'님과 거래 완료!</b></div><div class="tcol"><div class="tside"><div class="th">받은 것</div><div class="tlist">'+trChips(his,false)+'</div></div><div class="tside"><div class="th">준 것</div><div class="tlist">'+trChips(mine,true)+'</div></div></div><button class="gb green" data-act="trClose" style="width:100%">닫기</button>'];}
+ if(d.st==='wait')return['🤝 거래','<div class="tbig">⏳<b>'+on+'님에게 거래를 신청했어요</b><small>상대가 수락하면 바로 거래방이 열려요</small></div><button class="gb cream" data-act="trCancel" style="width:100%">신청 취소</button>'];
+ const mo=trOff(d,me),ho=trOff(d,ot),acc=d.acc||{},hh=trHash(d),myAcc=acc[me]===hh,hisAcc=acc[ot]===hh;
+ const mb=safeB(save.breed),hb=oi&&oi.own?'cheese':'cheese';
+ let h='<div class="tcol">'+
+  '<div class="tside'+(hisAcc?' ok':'')+'"><div class="th">'+on+' <span class="tst">'+(hisAcc?'✅ 수락':'⏳ 고르는 중')+'</span></div><div class="tlist">'+trChips(ho,false)+'</div></div>'+
+  '<div class="tswap">⇄</div>'+
+  '<div class="tside me'+(myAcc?' ok':'')+'"><div class="th">나 <span class="tst">'+(myAcc?'✅ 수락':'⏳ 고르는 중')+'</span></div><div class="tlist">'+trChips(mo,true,oi)+'</div></div></div>'+
+  '<div class="ttabs">'+[['c','🪙 코인'],['g','💎 보석'],['cat','🐱 고양이'],['sk','✨ 스킬']].map(([k,n])=>'<button class="'+(trTab===k?'on':'')+'" data-act="trTab" data-arg="'+k+'">'+n+'</button>').join('')+'</div><div class="tpane">';
+ if(trTab==='c'||trTab==='g'){const k=trTab,cur=k==='c'?mo.c:mo.g,have=k==='c'?save.coins:save.gems,ic=k==='c'?'🪙':'💎',q=k==='c'?[100,1000,10000]:[1,10,100];
+  h+='<div class="thave">'+ic+' 보유 <b>'+fmt(have)+'</b> · 지금 올린 양 <b>'+fmt(cur)+'</b></div>'+
+   '<div class="tin"><input class="inp" id="'+(k==='c'?'trCin':'trGin')+'" inputmode="numeric" placeholder="원하는 '+(k==='c'?'코인':'보석')+' 수 입력" value="'+(cur||'')+'"><button class="gb green" data-act="'+(k==='c'?'trSetC':'trSetG')+'">넣기</button></div>'+
+   '<div class="tq">'+q.map(v=>'<button class="gb sm '+(k==='c'?'orange':'blue')+'" data-act="'+(k==='c'?'trC':'trG')+'" data-arg="'+v+'">+'+fmt(v)+'</button>').join('')+'<button class="gb sm cream" data-act="'+(k==='c'?'trC':'trG')+'" data-arg="'+have+'">전부</button><button class="gb sm cream" data-act="'+(k==='c'?'trC':'trG')+'" data-arg="0">0</button></div>';}
+ else if(trTab==='cat'){const cats=trMyCats();h+=cats.length?'<div class="tgrid">'+cats.map(id=>{const on2=mo.cats.includes(id);return '<button class="tcard'+(on2?' on':'')+'" data-act="trCat" data-arg="'+id+'"><img src="'+headURL(id,'none')+'" alt=""><span>'+esc(BREED[id].name)+'</span>'+(on2?'<i>✔</i>':'')+'</button>';}).join('')+'</div>':'<div class="tnone">거래할 수 있는 고양이가 없어요</div>';
+  h+='<div class="tnote">기록 보상·챔피언·변신냥은 거래할 수 없어요</div>';}
+ else{const sks=trMySk();h+=sks.length?'<div class="tgrid">'+sks.map(id=>{const on2=mo.sk.includes(id);return '<button class="tcard'+(on2?' on':'')+'" data-act="trSk" data-arg="'+id+'"><span class="te">'+SKILLS[id].e+'</span><span>'+esc(SKILLS[id].n)+'</span>'+(skAw(id)?'<b class="taw">'+AWN[id]+'</b>':'')+(on2?'<i>✔</i>':'')+'</button>';}).join('')+'</div>':'<div class="tnone">스킬이 없어요</div>';
+  h+='<div class="tnote">스킬을 주면 각성도 함께 넘어가요</div>';}
+ h+='</div><div class="tbar"><button class="gb '+(myAcc?'cream':'green')+'" data-act="trAcc">'+(myAcc?'수락 취소':'✅ 수락')+'</button><button class="gb pink sm" data-act="trCancel">취소</button></div>'+
+  '<div class="tnote" style="text-align:center">'+(myAcc&&hisAcc?'교환 중…':myAcc?on+'님의 수락을 기다리는 중…':hisAcc?'✨ '+on+'님이 수락했어요! 확인하고 수락하세요':'둘 다 수락하면 바로 교환돼요 · 내용을 바꾸면 수락이 풀려요')+'</div>';
+ return['🤝 '+on+'님과 거래',h];};
 Object.assign(ACT,{
- trInv:async fc=>{if(!FB)return toast('온라인 연결이 필요해요');if(TR)return toast('이미 거래 중이에요');const p=lobbyPeersList.find(x=>x.presence.fc===fc);const id='tr'+Date.now().toString(36)+mkCode(4).toLowerCase();
+ trInv:async fc=>{askNotifyPerm();if(!FB)return toast('온라인 연결이 필요해요');if(TR)return toast('이미 거래 중이에요');const p=lobbyPeersList.find(x=>x.presence.fc===fc);const id='tr'+Date.now().toString(36)+mkCode(4).toLowerCase();
   const d={a:trMe(),bf:fc,bn:p?String(p.presence.nick||'상대').slice(0,10):'상대',oa:TR_EMPTY(),ob:TR_EMPTY(),st:'wait',t:{'.sv':'timestamp'}};
   try{await fbReq('trades/'+id,'PUT',d);await fbReq('tradeReq/'+fbKey(fc),'PUT',{id,from:save.fcode,nick:(save.nick||'냥이').slice(0,10),t:{'.sv':'timestamp'}});sfx('click');toast('🤝 거래 요청을 보냈어요');trStart(id,'a');}catch(e){toast('실패');}},
- trYes:async()=>{const r=trReq;trReq=null;if(!r)return;try{const d=await fbReq('trades/'+r.id,'GET');if(!d||d.st!=='wait'){toast('이미 취소된 요청이에요');rerender();return;}await fbReq('trades/'+r.id+'/b','PUT',trMe());await fbReq('trades/'+r.id+'/st','PUT','open');await fbReq('tradeReq/'+fbKey(save.fcode),'DELETE');sfx('zone');trStart(r.id,'b');}catch(e){toast('실패');}},
- trNo:()=>{const r=trReq;trReq=null;if(r){fbReq('trades/'+r.id+'/st','PUT','cancel').catch(()=>{});fbReq('tradeReq/'+fbKey(save.fcode),'DELETE').catch(()=>{});}rerender();},
+ trYes:async()=>{const r=trReq;trReq=null;trPopHide();if(!r)return;askNotifyPerm();try{const d=await fbReq('trades/'+r.id,'GET');if(!d||d.st!=='wait'){toast('이미 취소된 요청이에요');rerender();return;}await fbReq('trades/'+r.id+'/b','PUT',trMe());await fbReq('trades/'+r.id+'/st','PUT','open');await fbReq('tradeReq/'+fbKey(save.fcode),'DELETE');sfx('zone');trStart(r.id,'b');}catch(e){toast('실패');}},
+ trNo:()=>{const r=trReq;trReq=null;trPopHide();if(r){fbReq('trades/'+r.id+'/st','PUT','cancel').catch(()=>{});fbReq('tradeReq/'+fbKey(save.fcode),'DELETE').catch(()=>{});}rerender();},
  trCancel:()=>{if(TR){fbReq('trades/'+TR.id+'/st','PUT','cancel').catch(()=>{});if(TR.d&&TR.d.bf)fbReq('tradeReq/'+fbKey(TR.d.bf),'DELETE').catch(()=>{});}trStop();sfx('click');closePanelSafe();toast('거래를 취소했어요');},
  trClose:()=>{trStop();closePanelSafe();},
  trOpen:()=>{if(TR)openPanel('trade');},
+ trTab:a=>{trTab=a;sfx('click');rerender();},
+ trSetC:()=>trSetAmt('c'),trSetG:()=>trSetAmt('g'),
  trC:a=>{if(!TR||!TR.d)return;const o=trOff(TR.d,TR.me),v=+a;o.c=v===0?0:Math.min(save.coins,Math.max(0,o.c+v));sfx('click');trPutMine(o);},
  trG:a=>{if(!TR||!TR.d)return;const o=trOff(TR.d,TR.me),v=+a;o.g=v===0?0:Math.min(save.gems,Math.max(0,o.g+v));sfx('click');trPutMine(o);},
  trCat:id=>{if(!TR||!TR.d||!trCatOK(id)||!save.breeds.includes(id))return;const o=trOff(TR.d,TR.me);o.cats=o.cats.includes(id)?o.cats.filter(x=>x!==id):o.cats.concat([id]);sfx('click');trPutMine(o);},
- trSk:id=>{if(!TR||!TR.d||!ownSkill(id))return;const o=trOff(TR.d,TR.me);o.sk=o.sk.includes(id)?o.sk.filter(x=>x!==id):o.sk.concat([id]);sfx('click');trPutMine(o);},
+ trSk:id=>{if(!TR||!TR.d||!ownSkill(id))return;const o=trOff(TR.d,TR.me);if(o.sk.includes(id)){o.sk=o.sk.filter(x=>x!==id);o.aw=o.aw.filter(x=>x!==id);}else{o.sk=o.sk.concat([id]);if(skAw(id))o.aw=o.aw.concat([id]);}sfx('click');trPutMine(o);},
  trAcc:()=>{if(!TR||!TR.d||TR.d.st!=='open')return;const h=trHash(TR.d),acc=TR.d.acc||{};const mine=acc[TR.me]===h;TR.d.acc=Object.assign({},acc,{[TR.me]:mine?null:h});trLast='';rerender();sfx(mine?'click':'buy');fbReq('trades/'+TR.id+'/acc/'+TR.me,mine?'DELETE':'PUT',mine?undefined:h).then(()=>trPoll()).catch(()=>{});}
 });
-async function trReqTick(){if(!FB||TR)return;try{const r=await fbReq('tradeReq/'+fbKey(save.fcode),'GET');if(!r||!r.id){if(trReq){trReq=null;if(curPanel==='online')rerender();}return;}
- if(Math.abs(svNow()-(Number(r.t)||0))>90000)return;if(trSeen[r.id])return;trSeen[r.id]=1;trReq={id:r.id,nick:String(r.nick||'친구').slice(0,10)};sfx('zone');vib(80);
- if(state==='home'&&(!curPanel||curPanel==='online')){onlineTab='friend';openPanel('online');}else toast('🤝 '+trReq.nick+'님이 거래를 신청했어요 (온라인 → 친구 탭)');}catch(e){}}
+let trPopFor=null,titleOrig=document.title,titleT=null;
+function trPopHide(){const p=$('trPop');if(p)p.remove();trPopFor=null;}
+function trPopShow(){if(!trReq)return trPopHide();const home=state==='home'||state==='over';if(trPopFor===trReq.id+(home?'h':'p')&&$('trPop'))return;trPopFor=trReq.id+(home?'h':'p');let p=$('trPop');if(!p){p=document.createElement('div');p.id='trPop';stage.appendChild(p);}
+ p.innerHTML='<span class="em">🤝</span><div class="tx"><b>'+esc(trReq.nick)+'님의 거래 신청!</b><small>'+(home?'수락하면 거래방이 열려요':'게임이 끝나면 수락할 수 있어요')+'</small></div>'+(home?'<button class="gb sm green" data-act="trYes">수락</button>':'')+'<button class="gb sm cream" data-act="trNo">거절</button>';}
+function trNotify(){sfx('zone');setTimeout(()=>sfx('coin'),180);vib([80,60,80]);
+ if(document.hidden){clearInterval(titleT);let k=0;titleT=setInterval(()=>{document.title=(k++%2)?titleOrig:'🤝 거래 신청이 왔어요!';if(!document.hidden){clearInterval(titleT);document.title=titleOrig;}},900);
+  try{if('Notification'in window&&Notification.permission==='granted')new Notification('냥냥 점프',{body:'🤝 '+trReq.nick+'님이 거래를 신청했어요!'});}catch(e){}}}
+function askNotifyPerm(){try{if('Notification'in window&&Notification.permission==='default')Notification.requestPermission();}catch(e){}}
+async function trReqTick(){if(!FB||TR){trPopHide();return;}try{const r=await fbReq('tradeReq/'+fbKey(save.fcode),'GET');
+ if(!r||!r.id||Math.abs(svNow()-(Number(r.t)||0))>120000){if(trReq){trReq=null;trPopHide();if(curPanel==='online')rerender();}return;}
+ if(!trSeen[r.id]){trSeen[r.id]=1;trReq={id:r.id,nick:String(r.nick||'친구').slice(0,10)};trNotify();if(curPanel==='online')rerender();}
+ if(trReq)trPopShow();}catch(e){}}
 function showInvite(p,room){invPending={room,nick:String(p.presence.nick||'친구').slice(0,10)};
  if(state!=='home'){toast('⚔️ '+invPending.nick+'님이 대결을 신청했어요 (홈에서 확인)');return;}
  onlineTab='vs';openPanel('online');sfx('zone');}
@@ -2193,7 +2228,7 @@ function setLock(on,msg){if(isAdmin())on=false;LOCKED=on;let d=$('lockScreen');
 let lockMsgShown=null;
 async function lockTick(){if(!FB)return;try{const l=await fbReq('gameLock','GET');const on=!!(l&&l.on),m=l&&l.msg||'';if(on!==LOCKED||m!==lockMsgShown){lockMsgShown=m;setLock(on,m);}}catch(e){}}
 let evTF=false,ovAt=0;async function evTick(){if(!FB||evTF)return;if(['play','dying','spect','vscount','evcount','tag'].includes(state)&&Math.random()<.5)return;evTF=true;setTimeout(()=>{evTF=false;},8000);lockTick();if(Date.now()-ovAt>30000){ovAt=Date.now();applyOverride();}try{
- const[bn,rc0,aw0,se0]=await Promise.all([fbReq('eventBanner','GET'),fbReq('champRecall','GET'),fbReq('award/'+evId(),'GET'),fbReq('season','GET')]);evTF=false;seasonApply(se0);titlesSync();trReqTick();if((typeof bn==='string'?bn:'')!==evBanner){evBanner=typeof bn==='string'?bn:'';try{localStorage.setItem('nyangjump_evbanner',evBanner);}catch(x){}if(state==='home')refreshHome();}
+ const[bn,rc0,aw0,se0]=await Promise.all([fbReq('eventBanner','GET'),fbReq('champRecall','GET'),fbReq('award/'+evId(),'GET'),fbReq('season','GET')]);evTF=false;seasonApply(se0);titlesSync();if((typeof bn==='string'?bn:'')!==evBanner){evBanner=typeof bn==='string'?bn:'';try{localStorage.setItem('nyangjump_evbanner',evBanner);}catch(x){}if(state==='home')refreshHome();}
  const rc=rc0;if(rc){const mine=rc.ids&&rc.ids[fbKey(evId())];if((rc.all&&(!save.champRecallSeen||save.champRecallSeen<rc.t))||(mine&&save.champRecallSeenId!==mine)){if(rc.all)save.champRecallSeen=rc.t;if(mine)save.champRecallSeenId=mine;if(save.breeds.includes('champion')){save.breeds=save.breeds.filter(x=>x!=='champion');if(save.breed==='champion')save.breed='cheese';persist();toast('🧹 챔피언 캣이 회수됐어요');if(state==='home')refreshHome();}}}
  const aw=aw0;if(aw&&aw.t&&awardSeen[evId()]!==aw.t){awardSeen[evId()]=aw.t;if(!save.breeds.includes('champion')){save.breeds.push('champion');}save.breed='champion';persist();showChampWin(Math.min(3,Math.max(1,aw.rank||1)));}
  }catch(x){}}
@@ -2512,6 +2547,7 @@ function press(){if(BANNED_DEV||LOCKED)return;audio();
  else if(state==='play'){if(cat&&cat.mode==='ground')$('hint').style.display='none';jump();}
  else if(state==='tag')tagJump();}
 stage.addEventListener('pointerdown',e=>{if(e.target!==canvas)return;e.preventDefault();press();});
+stage.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target&&(e.target.id==='trCin'||e.target.id==='trGin')){e.preventDefault();trSetAmt(e.target.id==='trCin'?'c':'g');}});
 stage.addEventListener('click',e=>{const t=e.target.closest('[data-open],[data-act]');if(!t||t.disabled)return;audio();
  if(t.dataset.open){sfx('click');openPanel(t.dataset.open);}else if(ACT[t.dataset.act])ACT[t.dataset.act](t.dataset.arg,t);if(t.blur)t.blur();});
 window.addEventListener('keydown',e=>{
@@ -2862,9 +2898,9 @@ document.addEventListener('contextmenu',e=>e.preventDefault());
 window.addEventListener('keydown',e=>{const k=(e.key||'').toLowerCase(),mod=e.metaKey||e.ctrlKey;
  if(e.key==='F12'||(mod&&e.altKey&&['i','j','c','u'].includes(k))||(mod&&e.shiftKey&&['i','j','c'].includes(k))||(mod&&k==='u')||(mod&&k==='s')){e.preventDefault();e.stopImmediatePropagation();toast('🚫 개발자 도구는 사용할 수 없어요');}},true);
 /* 개발자 도구 자동 감지 제거 (오탐 많음) */
-let verShown=false;async function verCheck(){if(verShown||location.protocol==='file:')return;try{const t=await fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(r=>r.text());const m=t.match(/APP_VER='([^']+)'/);if(m&&m[1]!==APP_VER){verShown=true;const d=document.createElement('button');d.textContent='🔄 새 버전이 나왔어요! 눌러서 새로고침';d.style.cssText='position:absolute;left:50%;bottom:calc(var(--u)*80);transform:translateX(-50%);z-index:60;background:#ffcc22;border:var(--o) solid #2a1626;border-radius:calc(var(--u)*4);padding:calc(var(--u)*3) calc(var(--u)*5);font-family:inherit;font-size:calc(var(--u)*7);box-shadow:0 var(--o) 0 #2a1626;white-space:nowrap';d.onclick=()=>{location.replace(location.pathname+'?v='+Date.now());};stage.appendChild(d);}}catch(e){}}
-setTimeout(verCheck,8000);setInterval(()=>{if(['home','over'].includes(state))verCheck();},60000);
-initOnline().then(accInit).then(()=>seasonSync()).then(()=>{titlesSync(true);if(SEASON.n<=AUTO_END_SEASON)setTimeout(autoSeasonEnd,2000+Math.random()*3000);checkTop();setInterval(checkTop,15000);checkBanned();setInterval(checkBanned,30000);svSync().then(()=>{liveTick();setInterval(liveTick,1500);});evTick();setInterval(evTick,4000);setInterval(svSync,60000);}).catch(()=>{});
+let verShown=false;async function verCheck(){if(verShown||location.protocol==='file:')return;try{const t=await fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(r=>r.text());const m=t.match(/APP_VER='([^']+)'/);if(m&&m[1]!==APP_VER){if(state==='home'&&!curPanel&&!TR&&!VS&&!EV){toast('🔄 새 버전으로 업데이트 중…');setTimeout(()=>location.replace(location.pathname+'?v='+Date.now()),1200);verShown=true;return;}verShown=true;const d=document.createElement('button');d.textContent='🔄 새 버전이 나왔어요! 눌러서 새로고침';d.style.cssText='position:absolute;left:50%;bottom:calc(var(--u)*80);transform:translateX(-50%);z-index:60;background:#ffcc22;border:var(--o) solid #2a1626;border-radius:calc(var(--u)*4);padding:calc(var(--u)*3) calc(var(--u)*5);font-family:inherit;font-size:calc(var(--u)*7);box-shadow:0 var(--o) 0 #2a1626;white-space:nowrap';d.onclick=()=>{location.replace(location.pathname+'?v='+Date.now());};stage.appendChild(d);}}catch(e){}}
+setTimeout(verCheck,6000);setInterval(()=>{if(['home','over'].includes(state)){if(verShown&&state==='home'&&!curPanel&&!TR&&!VS&&!EV){verShown=false;}verCheck();}},45000);
+initOnline().then(accInit).then(()=>seasonSync()).then(()=>{titlesSync(true);if(SEASON.n<=AUTO_END_SEASON)setTimeout(autoSeasonEnd,2000+Math.random()*3000);checkTop();setInterval(checkTop,15000);checkBanned();setInterval(checkBanned,30000);svSync().then(()=>{liveTick();setInterval(liveTick,1500);trReqTick();setInterval(trReqTick,2000);});evTick();setInterval(evTick,4000);setInterval(svSync,60000);}).catch(()=>{});
 requestAnimationFrame(frame);
 })();
 </script>
