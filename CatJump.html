@@ -1677,7 +1677,8 @@ function fbRoom(name){
  function rebuild(){
   const now=Date.now(),list=[],all=Object.assign({},tree);all[FB_PEER]={p:mine,t:now};
   for(const k in all){const v=all[k];if(!v||typeof v!=='object')continue;const t=Number(v.t)||0;
-   if(k!==FB_PEER&&now-t>30000){if(now-t>120000&&!chg['x'+k]){chg['x'+k]=1;fbReq(path+'/'+k,'DELETE').catch(()=>{});}continue;}
+   const sa=chg['s'+k];if(!sa||sa.t!==t)chg['s'+k]={t,at:now};const alive=now-chg['s'+k].at<25000||Math.abs((typeof svNow==='function'?svNow():now)-t)<25000;
+   if(k!==FB_PEER&&!alive){if(now-t>120000&&!chg['x'+k]){chg['x'+k]=1;fbReq(path+'/'+k,'DELETE').catch(()=>{});}continue;}
    const pres=v.p&&typeof v.p==='object'?v.p:{},key=JSON.stringify(pres);if(chg[k]!==key){chg[k]=key;chg['u'+k]=now;}
    list.push({peer:k,by:null,isMe:k===FB_PEER,sameTab:k===FB_PEER,kind:'viewer',guest:false,presence:pres,updatedAt:chg['u'+k]||now});}
   snap=list;fire();}
@@ -1981,11 +1982,17 @@ function aiStep(dt){const v=VS,a=v.ai;if(!a)return;
  const f=floorOf(a.y);v.oppMax=Math.max(v.oppMax,f);if(f>=a.tgt&&Math.random()<dt*.7){a.dead=true;v.oppDead=true;}
  v.gx=a.x;v.gy=a.y;v.gm=a.m==='ground'?0:a.m==='wall'?1:(a.spin>0?3:2);v.gs=a.side||'R';v.gf=a.vx<0?-1:1;}
 function tryPair(){
- const me=ROOM.peers().find(p=>p.sameTab);if(!me||!me.presence||!me.presence.q)return;
+ const me=ROOM.peers().find(p=>p.sameTab);if(!me||!me.presence)return;
+ // 상대가 나를 골랐으면 그 방으로 바로 따라 들어가기
+ const inv=ROOM.peers().find(p=>!p.sameTab&&p.presence&&p.presence.m&&p.presence.m.with===me.peer&&typeof p.presence.m.room==='string'&&!seenInv['m'+p.presence.m.room]);
+ if(inv&&me.presence.q){seenInv['m'+inv.presence.m.room]=1;qT=0;lobbyUpdate({q:null});joinMatch(inv.presence.m.room,'random','');return;}
+ if(!me.presence.q)return;
  const q=ROOM.peers().filter(p=>p.kind==='viewer'&&p.presence&&p.presence.q&&p.presence.fc).sort((a,b)=>(a.presence.q-b.presence.q)||(a.peer<b.peer?-1:1));
  const i=q.findIndex(p=>p.sameTab);if(i<0)return;const j=i%2===0?i+1:i-1;if(j>=q.length)return;
- const name=('rm-'+[me.peer,q[j].peer].sort().join('-')).toLowerCase().replace(/[^a-z0-9_.-]/g,'').slice(0,48);
- qT=0;lobbyUpdate({q:null});joinMatch(name,'random','');
+ if(me.peer>q[j].peer)return; // 작은 쪽이 방을 만들고 상대를 부름
+ const name=('rm-'+[me.peer,q[j].peer].sort().join('-')+'-'+Date.now().toString(36)).toLowerCase().replace(/[^a-z0-9_.-]/g,'').slice(0,60);
+ qT=0;lobbyUpdate({q:null,m:{with:q[j].peer,room:name,t:Date.now()}});joinMatch(name,'random','');
+ setTimeout(()=>{if(VS&&VS.name===name&&!VS.opp){vsLeave().then(()=>{qT=Date.now();lobbyUpdate({q:Date.now(),m:null});toast('상대가 응답이 없어서 다시 찾는 중…');softRerender();});}else lobbyUpdate({m:null});},15000);
 }
 async function joinMatch(name,kind,code){
  if(!ROOM){toast('온라인에 연결되지 않았어요');return;}
