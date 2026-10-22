@@ -706,6 +706,10 @@ const SAW=[];(function(){const S=29,C=14.5;for(let f=0;f<6;f++){const a0=f/6*Mat
 const FISH=strSpr(["...KKKK..K..","..KYYYYKKYK.",".KYWKYYYYYK.","KYYYYYYYYYK.",".KYYYyyyKYK.","..KKKKKK..K."],{K:'#5a3a00',Y:'#ffd23f',y:'#e8a800',W:'#ffffff'});
 const BOMB=pixOut(11,12,(x,y)=>Math.hypot(x-5,y-6.5)<=4.4||(x===6&&y<=2&&y>=1)||(x===7&&y===1),(x,y)=>y<=2?'#c8a070':(x<4&&y<5?'#6a6a7a':'#2a2a36'),'#0a0a10');
 const FEATHER=strSpr(["..KK..",".KDDK.",".KDdK.","KDDdK.","KDdDK.",".KdK..","..K..."],{K:'#0a0a14',D:'#2e2e48',d:'#4a4a6a'});
+const FIREBALL=pixFn(13,13,(x,y)=>{const d=Math.hypot(x-6,y-6.5);if(d>5.8)return null;if(d>4.9)return'#8a1a06';if(d>3.8)return'#e8401a';if(d>2.4)return'#ff9a2a';return(x<6&&y<6)?'#ffffff':'#ffe14a';});
+const MINE=pixFn(15,15,(x,y)=>{const dx=x-7,dy=y-7,d=Math.hypot(dx,dy);const spike=(dx===0&&Math.abs(dy)<=7)||(dy===0&&Math.abs(dx)<=7)||(Math.abs(dx)===Math.abs(dy)&&d<=6.4);if(d<=4.6){if(d>3.7)return'#0a0a10';return(dx<0&&dy<0)?'#6a6a7a':'#34343e';}if(spike)return d>6?'#ff3a3a':'#8a8a96';return null;});
+const SPINBAR=pixFn(60,8,(x,y)=>{const hub=Math.hypot(x-29.5,y-3.5);if(hub<=3.6)return hub>2.6?'#1a1a22':'#ffcc22';if(y<1||y>6)return null;if(y===1||y===6||x===0||x===59)return'#1a1a22';return(Math.floor(x/5)%2)?'#ffcc22':'#2a2a33';});
+const ARM=pixFn(30,20,(x,y)=>{const fx=x>=20&&x<=29&&y>=4&&y<=15;if(fx){if(x===20||x===29||y===4||y===15)return'#1a0a0a';if(x===26&&y>5&&y<14&&y%3===0)return'#5a2a1a';return y<8?'#f2c8a0':'#d89a74';}if(y>=7&&y<=12&&x<20){if(y===7||y===12)return'#1a0a0a';return(Math.floor(x/4)%2)?'#5a6474':'#7a8494';}return null;});
 function web(P,x,y,s,dir){const c='rgba(225,225,245,.55)';for(let a=0;a<4;a++){const t=a/3*Math.PI/2;for(let d=0;d<s;d++)P(x+dir*Math.cos(t)*d,y+Math.sin(t)*d,1,1,c);}
  for(const rr of[s*.35,s*.65,s*.95])for(let k=0;k<=10;k++){const t=k/10*Math.PI/2;P(x+dir*Math.cos(t)*rr,y+Math.sin(t)*rr,1,1,c);}}
 function spider(P,x,y,len){for(let yy=5;yy<len;yy++)P(x,yy,1,1,'rgba(220,220,240,.6)');P(x-2,len,5,4,'#120a16');P(x-1,len-1,3,1,'#120a16');
@@ -1409,6 +1413,10 @@ function updHazards(dt){
   else if(h.type==='bird'||h.type==='bat'){h.x+=h.dir*h.sp*dt;if(h.x<LX+12){h.x=LX+12;h.dir=1;}if(h.x>RX-12){h.x=RX-12;h.dir=-1;}h.fa+=dt;if(h.type==='bat')h.y=h.by+Math.sin(runT*4+h.fa)*5;}
   else if(h.type==='ghost'){h.x=h.bx+Math.sin(runT*h.sp+h.ph)*h.amp;h.y=h.by+Math.sin(runT*2+h.ph)*6;}
   else if(h.type==='cannon')h.shake=Math.max(0,h.shake-dt);
+  else if(h.type==='fireball'){if(!h.dir)h.dir=Math.random()<.5?-1:1;h.x+=h.dir*h.sp*dt;if(h.x<LX+14){h.x=LX+14;h.dir=1;}if(h.x>RX-14){h.x=RX-14;h.dir=-1;}h.y=h.y0+Math.sin(runT*3+h.ph)*6;}
+  else if(h.type==='mine')h.x=h.bx+Math.sin(runT*h.sp+h.ph)*h.amp;
+  else if(h.type==='spinbar')h.rot+=h.sp*dt;
+  else if(h.type==='arm'){const p=((runT+h.ph)%2.6+2.6)%2.6;h.reach=p<1.2?0:p<1.45?(p-1.2)/.25:p<2.1?1:p<2.5?1-(p-2.1)/.4:0;h.warn=p>.8&&p<1.2;}
  }
 }
 function updatePlay(dt){
@@ -1587,7 +1595,7 @@ function render(){
   else if(h.type==='bird'){const f=((h.fa*8)|0)%2;ctx.drawImage(h.dir<0?BIRDF[f]:BIRD[f],sn(h.x)-6,sn(h.y-cy)-4);}
   else if(h.type==='bat'){const f=((h.fa*9)|0)%2;ctx.drawImage(BAT[f],sn(h.x)-7,sn(h.y-cy)-4);}
   else if(h.type==='ghost'){ctx.globalAlpha=.7+Math.sin(runT*5+h.ph)*.2;const flip=Math.cos(runT*h.sp+h.ph)<0;ctx.save();ctx.translate(sn(h.x),sn(h.y-cy));if(flip)ctx.scale(-1,1);ctx.drawImage(GHOST,-7,-7);ctx.restore();ctx.globalAlpha=1;}
-  else if(h.type==='arm'){const L=h.side==='L',ex=L?LX:RX-30,Y=sn(h.y-cy)-10,push=h.reach*20;glow(sn(L?LX+10+push:RX-10-push),Y+10,h.reach>.5?10:6);ctx.save();ctx.translate(L?ex+push:ex-push,Y);if(!L)ctx.translate(30,0),ctx.scale(-1,1);ctx.drawImage(ARM,0,0);ctx.restore();}
+  else if(h.type==='arm'){const L=h.side==='L',Y=sn(h.y-cy)-10,hx=L?LX+4+h.reach*26:RX-4-h.reach*26,jit=h.warn?sn(rnd(-1,1)):0;if(h.warn||h.reach>.3)glow(sn(hx),Y+10,h.reach>.5?11:7);ctx.save();ctx.translate(sn(hx)+jit,Y);if(!L)ctx.scale(-1,1);ctx.drawImage(ARM,-30,0);ctx.restore();}
   else if(h.type==='fireball'){glow(sn(h.x),sn(h.y-cy),9);ctx.drawImage(FIREBALL,sn(h.x)-6,sn(h.y-cy)-6);if(Math.random()<.4)parts.push({x:h.x+rnd(-4,4),y:h.y-6,vx:0,vy:-30,life:.4,max:.4,col:Math.random()<.5?'#ff8a1a':'#ffe14a',sz:1,g:0});}
   else if(h.type==='mine'){glow(sn(h.x),sn(h.y-cy),9);ctx.drawImage(MINE,sn(h.x)-7,sn(h.y-cy)-7);if(((gt*4)|0)%2)px(sn(h.x)-1,sn(h.y-cy)-1,2,2,'#ff3a3a');}
   else if(h.type==='spinbar'){ctx.save();ctx.translate(sn(h.x),sn(h.y-cy));ctx.rotate(h.rot);ctx.drawImage(SPINBAR,-30,-4);ctx.restore();}}
@@ -1688,7 +1696,8 @@ function showNewKing(nick,best,breed,outfit,me,rank){const el=$('crown');rank=ra
  vib([60,40,60]);}
 
 function rankUID(){return (typeof session!=='undefined'&&session&&session.id)?('u_'+fbKey(session.id)):UID;}
-async function submitScore(){const RU=rankUID();if(!DB||!RU||save.best<1)return;setTimeout(checkTop,1500);try{await DB.collection('ranking').doc(RU).set({nick:(save.nick||'이름없는 냥이').slice(0,10),best:save.best,breed:save.breed,outfit:save.outfit,t:Date.now()});if(UID&&UID!==RU)await fbReq('ranking/'+fbKey(UID),'DELETE').catch(()=>{});}catch(e){}}
+async function applyOverride(){if(!FB)return;const ks=[rankUID(),UID].filter(Boolean);for(const k of ks){try{const o=await fbReq('bestOverride/'+fbKey(k),'GET');if(o&&o.t&&save.ovT!==o.t){save.ovT=o.t;save.best=Math.max(0,Math.floor(Number(o.best)||0));persist();if(state==='home')refreshHome();}}catch(e){}}}
+async function submitScore(){const RU=rankUID();if(!DB||!RU)return;await applyOverride();if(save.best<1)return;setTimeout(checkTop,1500);try{await DB.collection('ranking').doc(RU).set({nick:(save.nick||'이름없는 냥이').slice(0,10),best:save.best,breed:save.breed,outfit:save.outfit,t:Date.now()});if(UID&&UID!==RU)await fbReq('ranking/'+fbKey(UID),'DELETE').catch(()=>{});}catch(e){}}
 let rankCache='',rankAt=0;
 async function loadRank(){
  const box=$('rankBox');if(!box)return;
@@ -1819,7 +1828,7 @@ const ELEV={250:{c:500,g:5},400:{c:1000,g:10},650:{c:1500,g:15,need:1000},1000:{
 function enterHud(){hudF=hudC=hudG=hudK=-1;show(null);$('hbst').textContent='BEST '+fmt(save.best)+'m';
  $('modeTag').textContent={normal:'',hard:'🔥 하드 모드',halloween:'🎃 할로윈 모드',boss:'👹 보스전'}[mode]||'';
  $('bossbar').style.display=boss?'block':'none';if(boss)$('bossnm').textContent=boss.def.name;$('zone').style.display='none';$('hprog').style.display=boss?'none':'block';updHud();}
-function startGame(m){curPanel=null;if(BANNED_DEV)return;
+function startGame(m){curPanel=null;if(BANNED_DEV||LOCKED)return;
  resetRun(m);generate();save.stats.runs++;persist();startCount();}
 function startBoss(i){curPanel=null;resetRun('boss');bossHearts=3;const d=BOSSES[i];boss={st:i,def:d,hp:d.hp,max:d.hp,x:MX,y:0,t:0,atk:2.6,orbT:1.5,flash:0,dead:false,deadT:0,n:0};
  generate();save.stats.runs++;persist();startCount();}
@@ -2030,7 +2039,15 @@ let EV=null,evSeen=0,evPollT=0,awardSeen={},evBanner='',evPeers={},evPeerT=0;
 try{evBanner=localStorage.getItem('nyangjump_evbanner')||'';}catch(e){}
 function evId(){return (UID||('g_'+(save.fcode||DEV_ID||'x'))).replace(/[.#$\[\]\/]/g,'_');}
 function evName(){return (save.nick||'냥이').slice(0,10);}
-async function evTick(){if(!FB)return;try{
+let LOCKED=false;
+function setLock(on,msg){if(isAdmin())on=false;LOCKED=on;let d=$('lockScreen');
+ if(on){if(['play','ready','count','elevator','dying','paused','spect','vscount','evcount','tag'].includes(state)){try{bank();}catch(e){}goHome();}
+  if(!d){d=document.createElement('div');d.id='lockScreen';d.style.cssText='position:absolute;inset:0;z-index:49;background:rgba(20,10,40,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:calc(var(--u)*10);font-size:calc(var(--u)*9);gap:calc(var(--u)*4)';stage.appendChild(d);}
+  d.innerHTML='<div style="font-size:calc(var(--u)*26)">🔒</div><b>지금은 게임이 잠겨 있어요</b><small style="opacity:.8;font-size:calc(var(--u)*6.5)">'+esc(msg||'점검 중이에요. 잠시 후 다시 와 주세요!')+'</small>';}
+ else if(d)d.remove();}
+let lockMsgShown=null;
+async function lockTick(){if(!FB)return;try{const l=await fbReq('gameLock','GET');const on=!!(l&&l.on),m=l&&l.msg||'';if(on!==LOCKED||m!==lockMsgShown){lockMsgShown=m;setLock(on,m);}}catch(e){}}
+async function evTick(){if(!FB)return;lockTick();applyOverride();try{
  const bn=await fbReq('eventBanner','GET');if((typeof bn==='string'?bn:'')!==evBanner){evBanner=typeof bn==='string'?bn:'';try{localStorage.setItem('nyangjump_evbanner',evBanner);}catch(x){}if(state==='home')refreshHome();}
  const rc=await fbReq('champRecall','GET');if(rc){const mine=rc.ids&&rc.ids[fbKey(evId())];if((rc.all&&(!save.champRecallSeen||save.champRecallSeen<rc.t))||(mine&&save.champRecallSeenId!==mine)){if(rc.all)save.champRecallSeen=rc.t;if(mine)save.champRecallSeenId=mine;if(save.breeds.includes('champion')){save.breeds=save.breeds.filter(x=>x!=='champion');if(save.breed==='champion')save.breed='cheese';persist();toast('🧹 챔피언 캣이 회수됐어요');if(state==='home')refreshHome();}}}
  const aw=await fbReq('award/'+evId(),'GET');if(aw&&aw.t&&awardSeen[evId()]!==aw.t){awardSeen[evId()]=aw.t;if(!save.breeds.includes('champion')){save.breeds.push('champion');}save.breed='champion';persist();showChampWin(Math.min(3,Math.max(1,aw.rank||1)));}
@@ -2265,7 +2282,8 @@ PANELS.admin=function(){if(!isAdmin())return['관리자','<div class="note">관�
  '<div class="li"><span class="em">📢</span><div class="tx"><input class="inp" id="evBanIn" placeholder="이벤트 안내 문구" value="'+esc(evBanner||'')+'"></div><button class="gb sm" data-act="evBan">표시</button></div>'+
  '<div class="note">🏆 챔피언 캣 지급 (레이싱 1·2·3등). 접속자에서 골라 등수 버튼을 누르세요.</div><div class="panel" style="padding:calc(var(--u)*2)" id="champBox"><div class="note">접속자 불러오는 중…</div></div>'+
  '<div class="li" style="background:#1a2a4a;color:#fff"><span class="em">🙋</span><div class="tx"><b>내 기록 올리기</b><small style="color:#bcd">지금 로그인한 '+esc(session&&session.id||'?')+' 계정</small><input class="inp" id="myVal" placeholder="올릴 기록(m)" inputmode="numeric" style="margin-top:4px"></div><button class="gb sm green" data-act="setMyBest">올리기</button></div>'+
- '<div class="note">📊 기록 수정</div><div class="li"><span class="em">📊</span><div class="tx"><input class="inp" id="sbId" placeholder="아이디" style="margin-bottom:4px"><input class="inp" id="sbVal" placeholder="기록(m)" inputmode="numeric"></div><button class="gb sm" data-act="setBest">변경</button></div>'+
+ '<div class="note">🔒 게임 잠그기 (관리자 빼고 아무도 못 해요)</div><div class="li"><span class="em">🔒</span><div class="tx"><input class="inp" id="lockMsg" placeholder="잠금 안내 문구 (비워도 됨)"></div><button class="gb sm pink" data-act="lockOn">잠그기</button><button class="gb sm green" data-act="lockOff">풀기</button></div>'+
+ '<div class="note">📊 기록 수정</div><div class="li"><span class="em">📊</span><div class="tx"><input class="inp" id="sbId" placeholder="아이디 또는 닉네임" style="margin-bottom:4px"><input class="inp" id="sbVal" placeholder="기록(m)" inputmode="numeric"></div><button class="gb sm" data-act="setBest">변경</button></div>'+
  '<div class="note">🗑️ 랭킹 1등 삭제</div><button class="gb sm pink" data-act="delTop" style="margin-bottom:calc(var(--u)*2)">지금 1등 삭제하기</button>'+
  '<div class="note">🧹 랭킹 중복 정리</div><button class="gb sm cream" data-act="dedupe" style="margin-bottom:calc(var(--u)*2)">중복된 아이디 정리하기</button>'+
  '<div class="note">🧹 챔피언 캣 회수</div><div class="li"><span class="em">🧹</span><div class="tx"><input class="inp" id="rcId" placeholder="회수할 아이디"></div><button class="gb sm cream" data-act="recall" data-arg="one">회수</button><button class="gb sm pink" data-act="recall" data-arg="all">전체</button></div>'+
@@ -2280,12 +2298,20 @@ Object.assign(ACT,{
  ban:k=>{if(!isAdmin()||!k||k==='u_'+ADMIN_ID)return;fbReq('banned/'+fbKey(k),'PUT',{t:Date.now()}).then(()=>{toast('🔨 정지했어요');loadAdmin();}).catch(()=>toast('실패했어요'));},
  unban:async k=>{if(!isAdmin()||!k)return;try{await fbReq('banned/'+fbKey(k),'DELETE');const dv=(await fbReq('bannedDev','GET'))||{};for(const d in dv)if(dv[d]===k)await fbReq('bannedDev/'+fbKey(d),'DELETE');toast('✅ 해제했어요');loadAdmin();}catch(e){toast('실패했어요');}},
  banId:()=>{const id=normId($('banIn')&&$('banIn').value);if(!id){toast('아이디를 입력하세요');return;}if(id===ADMIN_ID){toast('관리자는 정지할 수 없어요');return;}ACT.ban('u_'+fbKey(id));},
- evStart:kind=>{if(!isAdmin())return;fbReq('evp',null)&&0;fbReq('liveEvent','PUT',{kind,seed:(Math.random()*1e9)>>>0,t:Date.now(),delay:4000}).then(()=>{if(kind==='tag')fbReq('tagIt',null).catch(()=>{});toast('⚔️ '+kind+' 시작 신호!');}).catch(()=>toast('실패'));},
- evStop:()=>{if(!isAdmin())return;fbReq('liveEvent',null).then(()=>toast('⏹ 이벤트 종료')).catch(()=>{});},
+ evStart:kind=>{if(!isAdmin())return;fbReq('evp','DELETE')&&0;fbReq('liveEvent','PUT',{kind,seed:(Math.random()*1e9)>>>0,t:Date.now(),delay:4000}).then(()=>{if(kind==='tag')fbReq('tagIt','DELETE').catch(()=>{});toast('⚔️ '+kind+' 시작 신호!');}).catch(()=>toast('실패'));},
+ lockOn:()=>{if(!isAdmin())return;const m=($('lockMsg')&&$('lockMsg').value||'').slice(0,60);fbReq('gameLock','PUT',{on:true,msg:m,t:Date.now()}).then(()=>toast('🔒 게임을 잠갔어요 (3초 안에 적용)')).catch(()=>toast('실패'));},
+ lockOff:()=>{if(!isAdmin())return;fbReq('gameLock','DELETE').then(()=>toast('🔓 잠금을 풀었어요')).catch(()=>toast('실패'));},
+ evStop:()=>{if(!isAdmin())return;fbReq('liveEvent','DELETE').then(()=>toast('⏹ 이벤트 종료')).catch(()=>{});},
  evBan:()=>{if(!isAdmin())return;const t=($('evBanIn')&&$('evBanIn').value||'').slice(0,60);fbReq('eventBanner','PUT',t).then(()=>toast('📢 문구를 표시했어요')).catch(()=>{});},
  award:arg=>{if(!isAdmin())return;const [id,rank]=arg.split('|');fbReq('award/'+fbKey(id),'PUT',{rank:+rank,t:Date.now()}).then(()=>toast('🏆 '+rank+'등 지급!')).catch(()=>toast('실패'));},
  setMyBest:()=>{if(!isAdmin())return;const v=Math.max(0,parseInt($('myVal')&&$('myVal').value||'0',10));const RU=(typeof session!=='undefined'&&session&&session.id)?('u_'+fbKey(session.id)):UID;if(!RU)return toast('로그인 상태를 확인하세요');fbReq('ranking/'+fbKey(RU),'PUT',{nick:(save.nick||'냥이').slice(0,10),best:v,breed:save.breed,outfit:save.outfit,t:Date.now()}).then(()=>{save.best=Math.max(save.best,v);persist();toast('✅ 내 기록을 '+v+'m로 올렸어요');loadAdmin();}).catch(()=>toast('실패'));},
- setBest:()=>{if(!isAdmin())return;const id=normId($('sbId')&&$('sbId').value),v=Math.max(0,parseInt($('sbVal')&&$('sbVal').value||'0',10));if(!id)return toast('아이디를 입력하세요');fbReq('ranking/u_'+fbKey(id)+'/best','PUT',v).then(()=>{toast('✅ '+id+' 기록을 '+v+'m로 변경');loadAdmin();}).catch(()=>toast('실패'));},
+ setBest:async()=>{if(!isAdmin())return;const raw=String($('sbId')&&$('sbId').value||'').trim(),id=normId(raw),v=Math.max(0,parseInt($('sbVal')&&$('sbVal').value||'0',10));if(!id)return toast('아이디나 닉네임을 입력하세요');
+  try{const rk=await fbReq('ranking','GET')||{};const keys=Object.keys(rk).filter(k=>k==='u_'+fbKey(id)||String((rk[k]||{}).nick||'').trim().toLowerCase()===raw.toLowerCase());
+   const u=await fbReq('users/'+fbKey(id),'GET').catch(()=>null);if(u&&!keys.includes('u_'+fbKey(id)))keys.push('u_'+fbKey(id));
+   if(!keys.length){toast('그런 아이디/닉네임이 랭킹에 없어요');return;}const t=Date.now();
+   for(const k of keys){const old=rk[k]||{};await fbReq('ranking/'+fbKey(k),'PUT',{nick:old.nick||(u&&u.save&&u.save.nick)||raw,breed:old.breed||'cheese',outfit:old.outfit||'none',best:v,t});await fbReq('bestOverride/'+fbKey(k),'PUT',{best:v,t});}
+   if(u&&u.save){await fbReq('users/'+fbKey(id)+'/save/best','PUT',v);await fbReq('users/'+fbKey(id)+'/save/_t','PUT',t);}
+   rankCache='';toast('✅ '+raw+' 기록을 '+fmt(v)+'m로 고정했어요 ('+keys.length+'곳)');loadAdmin();}catch(e){toast('실패');}},
  delTop:async()=>{if(!isAdmin())return;if(!confirm('지금 랭킹 1등을 삭제할까요?'))return;try{const rk=await fbReq('ranking','GET')||{};let top=null;for(const k in rk){const v=rk[k]||{};const bb=Math.max(0,Math.floor(Number(v.best)||0));if(!top||bb>top.bb)top={k,bb,nick:v.nick||'?'};}if(!top){toast('랭킹이 비어 있어요');return;}await fbReq('ranking/'+fbKey(top.k),'DELETE');toast('🗑️ 1등 '+top.nick+' ('+top.bb+'m) 삭제');loadAdmin();}catch(e){toast('실패');}},
  dedupe:async()=>{if(!isAdmin())return;if(!confirm('중복된 랭킹을 정리할까요? (같은 닉네임은 최고 기록만 남겨요)'))return;try{const rk=await fbReq('ranking','GET')||{};const by={};for(const k in rk){const v=rk[k]||{};const nk=String(v.nick||'').trim().toLowerCase();const bb=Math.max(0,Math.floor(Number(v.best)||0));(by[nk]=by[nk]||[]).push({k,bb});}let del=0;for(const nk in by){const arr=by[nk];if(arr.length<2)continue;arr.sort((a,b)=>b.bb-a.bb);for(let i=1;i<arr.length;i++){await fbReq('ranking/'+fbKey(arr[i].k),'DELETE').catch(()=>{});del++;}}toast('🧹 중복 '+del+'개 정리했어요');loadAdmin();}catch(e){toast('실패');}},
  recall:async arg=>{if(!isAdmin())return;if(arg==='all'){if(!confirm('모든 사람의 챔피언 캣을 회수할까요?'))return;await fbReq('champRecall','PUT',{all:1,t:Date.now()});toast('🧹 전체 회수 신호를 보냈어요');}else{const id=normId($('rcId')&&$('rcId').value);if(!id)return toast('아이디를 입력하세요');await fbReq('champRecall/ids/'+fbKey(id),'PUT',Date.now());toast('🧹 '+id+' 회수');}}});
@@ -2297,7 +2323,7 @@ Object.assign(ACT,{atab:a=>{accTab=a;rerender();},alogin:()=>accLogin(),asignup:
  aguest:()=>{try{localStorage.setItem('nyangjump_guest','1');}catch(e){}closeModal();}});
 
 /* ================= 입력 ================= */
-function press(){if(BANNED_DEV)return;audio();
+function press(){if(BANNED_DEV||LOCKED)return;audio();
  if(state==='ready'){state='play';$('hint').style.display='none';jump();}
  else if(state==='play'){if(cat&&cat.mode==='ground')$('hint').style.display='none';jump();}
  else if(state==='tag')tagJump();}
