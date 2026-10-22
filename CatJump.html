@@ -309,6 +309,7 @@ var FIREBASE_URL='https://cat-jump-3afbb-default-rtdb.firebaseio.com';
 <script>
 (function(){
 'use strict';
+const APP_VER='2026-10-22-1155';
 const W=180;let H=320;
 const LX=16,RX=164,MX=90,FPX=24,CH=132,SEG=160,GRAV=820,CLING=10,GROUND_Y=-13;const CAT_SC=.8;
 let S=2;const sn=v=>Math.round(v*S)/S;
@@ -1989,8 +1990,7 @@ function tryPair(){
  if(!me.presence.q)return;
  const q=ROOM.peers().filter(p=>p.kind==='viewer'&&p.presence&&p.presence.q&&p.presence.fc).sort((a,b)=>(a.presence.q-b.presence.q)||(a.peer<b.peer?-1:1));
  const i=q.findIndex(p=>p.sameTab);if(i<0)return;const j=i%2===0?i+1:i-1;if(j>=q.length)return;
- if(me.peer>q[j].peer)return; // 작은 쪽이 방을 만들고 상대를 부름
- const name=('rm-'+[me.peer,q[j].peer].sort().join('-')+'-'+Date.now().toString(36)).toLowerCase().replace(/[^a-z0-9_.-]/g,'').slice(0,60);
+ const name=('rm-'+[me.peer,q[j].peer].sort().join('-')).toLowerCase().replace(/[^a-z0-9_.-]/g,'').slice(0,48); // 둘 다 같은 방 이름 → 양쪽 모두 바로 입장
  qT=0;lobbyUpdate({q:null,m:{with:q[j].peer,room:name,t:Date.now()}});joinMatch(name,'random','');
  setTimeout(()=>{if(VS&&VS.name===name&&!VS.opp){vsLeave().then(()=>{qT=Date.now();lobbyUpdate({q:Date.now(),m:null});toast('상대가 응답이 없어서 다시 찾는 중…');softRerender();});}else lobbyUpdate({m:null});},15000);
 }
@@ -2213,7 +2213,7 @@ PANELS.online=function(){
   if(invPending&&!VS)h+='<div class="li" style="background:#ffe08a"><span class="em">⚔️</span><div class="tx"><b>'+esc(invPending.nick)+'님의 대결 신청!</b><small>수락하면 1:1 대결방에 들어가요</small></div><button class="gb sm green" data-act="iacc">수락</button><button class="gb sm cream" data-act="idec">거절</button></div>';
   if(VS){const v=VS,o=v.opp,orb=o&&o.presence.rdy;
    const slot=(img,nm,sub,rdy)=>'<div class="card" style="flex:1">'+'<img class="cs" src="'+img+'" alt=""><div class="n">'+nm+'</div><div class="p">'+sub+'</div><div class="p" style="color:'+(rdy?'#2a9a2a':'#a87a5a')+'">'+(rdy?'✅ 준비 완료':'⏳ 준비 중')+'</div></div>';
-   h+='<div class="li"><span class="em">🚪</span><div class="tx"><b>'+(v.kind==='random'?'랜덤 매치':v.kind==='friend'?'친구 대결':'방 코드 <span class="big-n" style="color:#8a5ad8">'+esc(v.code)+'</span>')+'</b><small>'+(v.kind==='code'?'친구에게 이 코드를 알려주세요':'')+(o?'상대가 들어왔어요!':'상대를 기다리는 중…')+'</small></div></div>'+
+   h+='<div class="li"><span class="em">🚪</span><div class="tx"><b>'+(v.kind==='random'?'랜덤 매치':v.kind==='friend'?'친구 대결':'방 코드 <span class="big-n" style="color:#8a5ad8">'+esc(v.code)+'</span>')+'</b><small>'+(v.kind==='code'?'친구에게 이 코드를 알려주세요':'')+(o?'상대가 들어왔어요!':'상대를 기다리는 중… 오래 안 오면 둘 다 새로고침(Cmd+Shift+R) 해 보세요')+'</small></div></div>'+
     '<div class="row">'+slot(catURL('sit',0,save.breed,save.outfit),esc(save.nick||'나'),'최고 '+fmt(save.best)+'m',v.rdy)+'<div class="big-n" style="align-self:center">VS</div>'+
     (o?slot(catURL('sit',0,safeB(o.presence.breed),safeO(o.presence.outfit)),pNick(o),'최고 '+fmt(Number(o.presence.best)||0)+'m',orb):'<div class="card" style="flex:1;justify-content:center"><div class="big-n">❔</div><div class="n">빈 자리</div></div>')+'</div>'+
     '<button class="gb big '+(v.rdy?'cream':'green')+'" data-act="vsready"'+(o?'':' disabled')+'>'+(v.rdy?'준비 취소':'준비!')+'</button>'+
@@ -2669,6 +2669,8 @@ document.addEventListener('contextmenu',e=>e.preventDefault());
 window.addEventListener('keydown',e=>{const k=(e.key||'').toLowerCase(),mod=e.metaKey||e.ctrlKey;
  if(e.key==='F12'||(mod&&e.altKey&&['i','j','c','u'].includes(k))||(mod&&e.shiftKey&&['i','j','c'].includes(k))||(mod&&k==='u')||(mod&&k==='s')){e.preventDefault();e.stopImmediatePropagation();toast('🚫 개발자 도구는 사용할 수 없어요');}},true);
 /* 개발자 도구 자동 감지 제거 (오탐 많음) */
+let verShown=false;async function verCheck(){if(verShown||location.protocol==='file:')return;try{const t=await fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(r=>r.text());const m=t.match(/APP_VER='([^']+)'/);if(m&&m[1]!==APP_VER){verShown=true;const d=document.createElement('button');d.textContent='🔄 새 버전이 나왔어요! 눌러서 새로고침';d.style.cssText='position:absolute;left:50%;bottom:calc(var(--u)*80);transform:translateX(-50%);z-index:60;background:#ffcc22;border:var(--o) solid #2a1626;border-radius:calc(var(--u)*4);padding:calc(var(--u)*3) calc(var(--u)*5);font-family:inherit;font-size:calc(var(--u)*7);box-shadow:0 var(--o) 0 #2a1626;white-space:nowrap';d.onclick=()=>{location.replace(location.pathname+'?v='+Date.now());};stage.appendChild(d);}}catch(e){}}
+setTimeout(verCheck,8000);setInterval(()=>{if(['home','over'].includes(state))verCheck();},60000);
 initOnline().then(accInit).then(()=>{checkTop();setInterval(checkTop,15000);checkBanned();setInterval(checkBanned,30000);svSync().then(()=>{liveTick();setInterval(liveTick,1500);});evTick();setInterval(evTick,4000);setInterval(svSync,60000);}).catch(()=>{});
 requestAnimationFrame(frame);
 })();
