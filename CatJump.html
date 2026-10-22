@@ -309,7 +309,7 @@ var FIREBASE_URL='https://cat-jump-3afbb-default-rtdb.firebaseio.com';
 <script>
 (function(){
 'use strict';
-const APP_VER='2026-10-22-1155';
+const APP_VER='2026-10-22-1950';
 const W=180;let H=320;
 const LX=16,RX=164,MX=90,FPX=24,CH=132,SEG=160,GRAV=820,CLING=10,GROUND_Y=-13;const CAT_SC=.8;
 let S=2;const sn=v=>Math.round(v*S)/S;
@@ -1705,8 +1705,9 @@ let DB=null,USER=null,UID=null;
 async function initOnline(){if(FB){DB=fbDB();if(!save.uid){save.uid=Array.from({length:16},()=>'abcdefghijklmnopqrstuvwxyz0123456789'[Math.random()*36|0]).join('');persist();}UID=save.uid;ROOM=fbRoom('lobby');lobbyInit();return;}try{if(!window.claude||typeof window.claude.use!=='function')return;DB=await window.claude.use('db');USER=await window.claude.use('user');if(USER&&USER.id)UID=await USER.id();ROOM=await window.claude.use('room');if(ROOM)lobbyInit();}catch(e){DB=null;}}
 /* ================= 랭킹 1등 교체 알림 ================= */
 let topIds=null,topBest={};
+const inSeason=v=>v&&(v.pin||(Number(v.sn)||1)===SEASON.n);
 async function checkTop(){if(!DB)return;try{const s=await DB.collection('ranking').orderBy('best','desc').limit(12).get();
- let arr=s.docs.filter(d=>!isBannedName(d.id)&&!isBannedName((d.data()||{}).nick)).map(d=>({id:d.id,b:Math.max(0,Math.floor(Number((d.data()||{}).best)||0)),v:d.data()||{}}));
+ let arr=s.docs.filter(d=>inSeason(d.data()||{})&&!isBannedName(d.id)&&!isBannedName((d.data()||{}).nick)).map(d=>({id:d.id,b:Math.max(0,Math.floor(Number((d.data()||{}).best)||0)),v:d.data()||{}}));
  arr.sort((a,b)=>b.b-a.b||(a.id<b.id?-1:1));
  {const seen2={},out=[];for(const o of arr){const nk=String(o.v.nick||'').trim().toLowerCase();if(seen2[nk])continue;seen2[nk]=1;out.push(o);}arr=out;}const top=arr.slice(0,3),ids=top.map(o=>o.id),prev=topIds;
  if(prev===null){topIds=ids;topBest={};top.forEach(o=>topBest[o.id]=o.b);return;}
@@ -1722,22 +1723,37 @@ function showNewKing(nick,best,breed,outfit,me,rank){const el=$('crown');rank=ra
  try{if(!save.mute){audio();const n=[60,64,67,72,76,79,84];n.forEach((m,i)=>tone(mtof(m),mtof(m),.18,'square',.04,i*.09));tone(mtof(72),mtof(72),.9,'sawtooth',.03,.7);tone(mtof(76),mtof(76),.9,'sawtooth',.03,.7);tone(mtof(79),mtof(79),.9,'sawtooth',.03,.7);noise(.8,.08);}}catch(e){}
  vib([60,40,60]);}
 
+/* ================= 시즌 / 칭호 ================= */
+let SEASON={n:1,start:0,known:false},seasonsCache=null,titlesAt=0;
+const curSB=()=>Math.max(0,Math.floor(Number(save.sbest)||0));
+function seasonApply(v){const n=Math.max(1,Math.floor(Number(v&&v.n)||1));const changed=SEASON.known&&SEASON.n!==n;SEASON={n,start:Number(v&&v.start)||0,known:true};
+ if(save.sn!==n){if(save.sn==null&&n===1)save.sbest=save.best;else save.sbest=0;save.sn=n;persist();}
+ if(changed){rankCache='';try{localStorage.removeItem('nyangjump_rankc');}catch(e){}topIds=null;seasonsCache=null;toast('🏁 시즌 '+n+' 시작! 새 랭킹이 열렸어요');if(curPanel==='online')rerender();}}
+async function seasonSync(){if(!FB)return;try{seasonApply(await fbReq('season','GET'));}catch(e){}}
+function titleText(t){if(!t)return'';const r=Math.max(1,Math.min(3,Number(t.r)||1));return '시즌'+(Number(t.s)||1)+' '+['🥇','🥈','🥉'][r-1]+' '+r+'위 '+fmt(Number(t.m)||0)+'m';}
+function myTitle(){const T=save.titles||{};return save.title&&T[save.title]?titleText(T[save.title]):'';}
+async function titlesSync(force){if(!FB)return;if(!force&&Date.now()-titlesAt<30000)return;titlesAt=Date.now();
+ const ks=[...new Set([rankUID(),UID].filter(Boolean))];let got=false;save.titles=save.titles||{};
+ for(const k of ks){try{const o=await fbReq('titles/'+fbKey(k),'GET');for(const id in o||{}){const t=o[id];if(!t||typeof t!=='object')continue;if(!save.titles[id]){save.titles[id]={s:Number(t.s)||1,r:Number(t.r)||1,m:Number(t.m)||0};got=id;}}}catch(e){}}
+ if(got){if(!save.title)save.title=got;persist();toast('🎖️ 새 칭호 획득! 「'+titleText(save.titles[got])+'」');sfx('buy');vib([60,40,120]);if(curPanel==='online')rerender();}}
+const ttlHTML=t=>t?'<small style="display:block;color:#c88a00;font-size:76%;line-height:1.1">🎖️ '+esc(String(t).slice(0,30))+'</small>':'';
 function rankUID(){return (typeof session!=='undefined'&&session&&session.id)?('u_'+fbKey(session.id)):UID;}
-async function applyOverride(){if(!FB)return;const ks=[rankUID(),UID].filter(Boolean);for(const k of ks){try{const o=await fbReq('bestOverride/'+fbKey(k),'GET');if(o&&o.t&&save.ovT!==o.t){save.ovT=o.t;save.best=Math.max(0,Math.floor(Number(o.best)||0));persist();if(state==='home')refreshHome();}}catch(e){}}}
-async function submitScore(){const RU=rankUID();if(!DB||!RU)return;await applyOverride();if(save.best<1)return;setTimeout(checkTop,1500);try{await DB.collection('ranking').doc(RU).set({nick:(save.nick||'이름없는 냥이').slice(0,10),best:save.best,breed:save.breed,outfit:save.outfit,t:Date.now()});if(UID&&UID!==RU)await fbReq('ranking/'+fbKey(UID),'DELETE').catch(()=>{});}catch(e){}}
+async function applyOverride(){if(!FB)return;const ks=[rankUID(),UID].filter(Boolean);for(const k of ks){try{const o=await fbReq('bestOverride/'+fbKey(k),'GET');if(o&&o.t&&save.ovT!==o.t){save.ovT=o.t;const ob=Math.max(0,Math.floor(Number(o.best)||0));if((o.sn||1)===SEASON.n)save.sbest=ob;save.best=Math.max(save.best,ob);persist();if(state==='home')refreshHome();}}catch(e){}}}
+async function submitScore(){const RU=rankUID();if(!DB||!RU)return;if(!SEASON.known)await seasonSync();if(!SEASON.known)return;await applyOverride();if(curSB()<1)return;setTimeout(checkTop,1500);try{await DB.collection('ranking').doc(RU).set({nick:(save.nick||'이름없는 냥이').slice(0,10),best:curSB(),breed:save.breed,outfit:save.outfit,ti:myTitle(),sn:SEASON.n,t:Date.now()});if(UID&&UID!==RU)await fbReq('ranking/'+fbKey(UID),'DELETE').catch(()=>{});}catch(e){}}
 let rankCache='',rankAt=0;try{rankCache=localStorage.getItem('nyangjump_rankc')||'';}catch(e){}
 function fillRankImgs(){const ims=[...document.querySelectorAll('#rankBox img[data-h]')];let i=0;(function step(){const t=performance.now();while(i<ims.length&&performance.now()-t<8){const im=ims[i++],[b,o]=im.dataset.h.split('|');im.src=headURL(b,o);im.removeAttribute('data-h');}if(i<ims.length)requestAnimationFrame(step);})();}
 async function loadRank(){
  const box=$('rankBox');if(!box)return;
  if(!DB){box.innerHTML='<div class="note">온라인에 연결되지 않았어요. GitHub에 올렸다면 코드 맨 위 FIREBASE_URL에 Firebase 주소를 넣어 주세요. 혼자 하는 플레이와 기록 저장은 그대로 돼요.</div>';return;}
  if(rankCache&&box.innerHTML.indexOf('rk')<0){box.innerHTML=rankCache;fillRankImgs();}
- try{submitScore();const[s,BN0]=await Promise.all([DB.collection('ranking').orderBy('best','desc').limit(60).get(),FB?fbReq('banned','GET').catch(()=>null):Promise.resolve(null),FB?fbReq('rankPin','GET').catch(()=>null):Promise.resolve(null)]).then(r=>{const P=r[2]||{};for(const k in P){const p=P[k];if(!p||typeof p!=='object')continue;const ex=r[0].docs.find(d=>d.id===k),pv={nick:String(p.nick||'냥이'),best:Math.max(0,Math.floor(Number(p.best)||0)),breed:p.breed||'cheese',outfit:p.outfit||'none',pin:1};if(ex){const v=ex.data()||{};if((Number(v.best)||0)<pv.best||!v.nick)ex.data=()=>Object.assign({},v,pv);else ex.data=()=>Object.assign({},v,{pin:1});}else r[0].docs.push({id:k,data:()=>pv});}r[0].docs.sort((x,y)=>(Number((y.data()||{}).best)||0)-(Number((x.data()||{}).best)||0));return r;});
+ if(!SEASON.known)await seasonSync();
+ try{submitScore();const[s,BN0]=await Promise.all([DB.collection('ranking').orderBy('best','desc').limit(60).get(),FB?fbReq('banned','GET').catch(()=>null):Promise.resolve(null),FB?fbReq('rankPin','GET').catch(()=>null):Promise.resolve(null)]).then(r=>{const P=r[2]||{};for(const k in P){const p=P[k];if(!p||typeof p!=='object')continue;const ex=r[0].docs.find(d=>d.id===k),pv={ti:String(p.ti||''),nick:String(p.nick||'냥이'),best:Math.max(0,Math.floor(Number(p.best)||0)),breed:p.breed||'cheese',outfit:p.outfit||'none',pin:1};if(ex){const v=ex.data()||{};if((Number(v.best)||0)<pv.best||!v.nick)ex.data=()=>Object.assign({},v,pv);else ex.data=()=>Object.assign({},v,{pin:1});}else r[0].docs.push({id:k,data:()=>pv});}r[0].docs.sort((x,y)=>(Number((y.data()||{}).best)||0)-(Number((x.data()||{}).best)||0));return r;});
   if(!$('rankBox'))return;
   if(!s.docs.length){$('rankBox').innerHTML='<div class="note">아직 아무도 기록이 없어요. 첫 번째 주인공이 되어 보세요!</div>';return;}
-  {const RU=rankUID();if(RU&&save.best>=1&&!(BN0||{})[RU]){const mine={nick:(save.nick||'이름없는 냥이').slice(0,10),best:save.best,breed:save.breed,outfit:save.outfit};const ex=s.docs.find(d=>d.id===RU);if(ex){const v=ex.data()||{};if((Number(v.best)||0)<save.best)ex.data=()=>Object.assign({},v,{best:save.best});}else s.docs.push({id:RU,data:()=>mine});s.docs.sort((x,y)=>(Number((y.data()||{}).best)||0)-(Number((x.data()||{}).best)||0));}}
-  let html='';const BNs=BN0||{};const seen={};const rows=s.docs.filter(d=>{const v=d.data()||{};if(v.pin){const nk=String(v.nick||'').trim().toLowerCase();seen[nk]=Math.max(seen[nk]||0,Number(v.best)||0);return true;}if(BNs[d.id])return false;if(isBannedName(d.id)||isBannedName(v.nick)){if(FB)fbReq('ranking/'+fbKey(d.id),'DELETE').catch(()=>{});return false;}const nk=String(v.nick||'').trim().toLowerCase();const bb=Math.max(0,Math.floor(Number(v.best)||0));if(seen[nk]!==undefined){if(bb<=seen[nk])return false;}seen[nk]=bb;return true;}).map(d=>{let bb=Math.max(0,Math.floor(Number((d.data()||{}).best)||0));if(bb>=100000){bb=22000;if(FB)fbReq('ranking/'+fbKey(d.id)+'/best','PUT',22000).catch(()=>{});}return{d,bb};}).sort((a,b)=>b.bb-a.bb);rows.forEach(({d,bb},i)=>{const v=d.data()||{},best=bb,nick=typeof v.nick==='string'?v.nick.slice(0,10):'냥이',
+  {const RU=rankUID();if(RU&&curSB()>=1&&!(BN0||{})[RU]){const mine={nick:(save.nick||'이름없는 냥이').slice(0,10),best:curSB(),breed:save.breed,outfit:save.outfit,ti:myTitle(),sn:SEASON.n};const ex=s.docs.find(d=>d.id===RU);if(ex){const v=ex.data()||{};if(!inSeason(v)||(Number(v.best)||0)<curSB())ex.data=()=>Object.assign({},v,mine);}else s.docs.push({id:RU,data:()=>mine});s.docs.sort((x,y)=>(Number((y.data()||{}).best)||0)-(Number((x.data()||{}).best)||0));}}
+  let html='';const BNs=BN0||{};const seen={};const rows=s.docs.filter(d=>{const v=d.data()||{};if(!inSeason(v))return false;if(v.pin){const nk=String(v.nick||'').trim().toLowerCase();seen[nk]=Math.max(seen[nk]||0,Number(v.best)||0);return true;}if(BNs[d.id])return false;if(isBannedName(d.id)||isBannedName(v.nick)){if(FB)fbReq('ranking/'+fbKey(d.id),'DELETE').catch(()=>{});return false;}const nk=String(v.nick||'').trim().toLowerCase();const bb=Math.max(0,Math.floor(Number(v.best)||0));if(seen[nk]!==undefined){if(bb<=seen[nk])return false;}seen[nk]=bb;return true;}).map(d=>{let bb=Math.max(0,Math.floor(Number((d.data()||{}).best)||0));if(bb>=100000){bb=22000;if(FB)fbReq('ranking/'+fbKey(d.id)+'/best','PUT',22000).catch(()=>{});}return{d,bb};}).sort((a,b)=>b.bb-a.bb);rows.forEach(({d,bb},i)=>{const v=d.data()||{},best=bb,nick=typeof v.nick==='string'?v.nick.slice(0,10):'냥이',
    b=BREED[v.breed]?v.breed:'cheese',o=OUTFIT[v.outfit]?v.outfit:'none',me=d.id===rankUID()||d.id===UID;
-   html+='<div class="rk'+(me?' me':'')+'"><span class="no">'+(i<3?['🥇','🥈','🥉'][i]:i+1)+'</span><img data-h="'+b+'|'+o+'" src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt=""><span class="nn">'+esc(nick)+(me?' (나)':'')+'</span><b>'+fmt(best)+'m</b></div>';});
+   html+='<div class="rk'+(me?' me':'')+'"><span class="no">'+(i<3?['🥇','🥈','🥉'][i]:i+1)+'</span><img data-h="'+b+'|'+o+'" src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt=""><span class="nn">'+esc(nick)+(me?' (나)':'')+ttlHTML(me?myTitle():v.ti)+'</span><b>'+fmt(best)+'m</b></div>';});
   rankAt=Date.now();if(html!==rankCache){rankCache=html;try{localStorage.setItem('nyangjump_rankc',html);}catch(e){}$('rankBox').innerHTML=html;}fillRankImgs();
  }catch(e){if($('rankBox'))$('rankBox').innerHTML='<div class="note">랭킹을 불러오지 못했어요. 잠시 후 다시 열어 주세요.</div>';}
 }
@@ -1876,7 +1892,7 @@ function startElevator(f,cur,m){
 }
 function bank(){const dc=runCoins-bankC,dg=runGems-bankG,dk=runCandy-bankK,e=Math.round(dc*coinMult());
  save.coins+=e;earnedC+=e;save.gems+=dg;save.candy+=dk;save.stats.coins+=e;save.stats.candy+=dk;bankC=runCoins;bankG=runGems;bankK=runCandy;
- if(mode!=='boss'&&runFloor>save.best){save.best=runFloor;newBest=true;}persist();}
+ if(mode!=='boss'&&runFloor>save.best){save.best=runFloor;newBest=true;}if(mode!=='boss'&&runFloor>curSB())save.sbest=runFloor;persist();}
 function showOver(win){
  {const r0=$('evRes');if(r0)r0.style.display='none';}if(EV&&EV.kind==='race'){showEvResults();bank();state='over';overT=0;const[pl,tot]=EV.result||evPlace();$('otitle').textContent=pl<=3?['🥇 1등!','🥈 2등!','🥉 3등!'][pl-1]:'🏁 레이싱 종료';$('ofl').textContent=fmt(runFloor);$('obest').textContent=pl+'등 / '+tot+'명';$('oc').textContent=fmt(earnedC);$('og').textContent=fmt(runGems);$('ok').textContent='0';$('okw').style.display='none';$('onew').style.display=newBest?'block':'none';const rb=$('revBtn');rb.style.display='none';const r2=document.querySelector('#over [data-act="retry"]');if(r2)r2.textContent='홈으로';show('over');EV=null;mode='normal';sfx(pl<=3?'buy':'die');submitScore();return;}
  if(EV&&EV.kind==='boss'){showEvResults();bank();EV=null;mode='normal';}
@@ -1951,7 +1967,7 @@ const MATCH_T=90;
 const peerOK=p=>p&&p.kind==='viewer'&&!p.sameTab&&p.presence&&typeof p.presence.fc==='string';
 const pNick=p=>esc(String(p.presence.nick||'냥이').slice(0,10));
 const safeB=v=>BREED[v]?v:'cheese',safeO=v=>OUTFIT[v]?v:'none';
-function myInfo(){return{fc:save.fcode,nick:(save.nick||'냥이').slice(0,10),best:save.best,breed:save.breed,outfit:save.outfit};}
+function myInfo(){return{ti:myTitle(),fc:save.fcode,nick:(save.nick||'냥이').slice(0,10),best:save.best,breed:save.breed,outfit:save.outfit};}
 function lobbyInit(){
  lobbyUpdate();
  ROOM.onPeers(ch=>{lobbyPeersList=ch.peers.filter(peerOK);
@@ -2074,7 +2090,7 @@ let EV=null,evSeen=0,evPollT=0,awardSeen={},evBanner='',evPeers={},evPeerT=0;
 try{evBanner=localStorage.getItem('nyangjump_evbanner')||'';}catch(e){}
 function evId(){return (UID||('g_'+(save.fcode||DEV_ID||'x'))).replace(/[.#$\[\]\/]/g,'_');}
 function evName(){return (save.nick||'냥이').slice(0,10);}
-let LOCKED=false;
+let LOCKED=false,seasonArm=false;
 function setLock(on,msg){if(isAdmin())on=false;LOCKED=on;let d=$('lockScreen');
  if(on){if(['play','ready','count','elevator','dying','paused','spect','vscount','evcount','tag'].includes(state)){try{bank();}catch(e){}goHome();}
   if(!d){d=document.createElement('div');d.id='lockScreen';d.style.cssText='position:absolute;inset:0;z-index:49;background:rgba(20,10,40,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:calc(var(--u)*10);font-size:calc(var(--u)*9);gap:calc(var(--u)*4)';stage.appendChild(d);}
@@ -2083,7 +2099,7 @@ function setLock(on,msg){if(isAdmin())on=false;LOCKED=on;let d=$('lockScreen');
 let lockMsgShown=null;
 async function lockTick(){if(!FB)return;try{const l=await fbReq('gameLock','GET');const on=!!(l&&l.on),m=l&&l.msg||'';if(on!==LOCKED||m!==lockMsgShown){lockMsgShown=m;setLock(on,m);}}catch(e){}}
 let evTF=false,ovAt=0;async function evTick(){if(!FB||evTF)return;if(['play','dying','spect','vscount','evcount','tag'].includes(state)&&Math.random()<.5)return;evTF=true;setTimeout(()=>{evTF=false;},8000);lockTick();if(Date.now()-ovAt>30000){ovAt=Date.now();applyOverride();}try{
- const[bn,rc0,aw0]=await Promise.all([fbReq('eventBanner','GET'),fbReq('champRecall','GET'),fbReq('award/'+evId(),'GET')]);evTF=false;if((typeof bn==='string'?bn:'')!==evBanner){evBanner=typeof bn==='string'?bn:'';try{localStorage.setItem('nyangjump_evbanner',evBanner);}catch(x){}if(state==='home')refreshHome();}
+ const[bn,rc0,aw0,se0]=await Promise.all([fbReq('eventBanner','GET'),fbReq('champRecall','GET'),fbReq('award/'+evId(),'GET'),fbReq('season','GET')]);evTF=false;seasonApply(se0);titlesSync();if((typeof bn==='string'?bn:'')!==evBanner){evBanner=typeof bn==='string'?bn:'';try{localStorage.setItem('nyangjump_evbanner',evBanner);}catch(x){}if(state==='home')refreshHome();}
  const rc=rc0;if(rc){const mine=rc.ids&&rc.ids[fbKey(evId())];if((rc.all&&(!save.champRecallSeen||save.champRecallSeen<rc.t))||(mine&&save.champRecallSeenId!==mine)){if(rc.all)save.champRecallSeen=rc.t;if(mine)save.champRecallSeenId=mine;if(save.breeds.includes('champion')){save.breeds=save.breeds.filter(x=>x!=='champion');if(save.breed==='champion')save.breed='cheese';persist();toast('🧹 챔피언 캣이 회수됐어요');if(state==='home')refreshHome();}}}
  const aw=aw0;if(aw&&aw.t&&awardSeen[evId()]!==aw.t){awardSeen[evId()]=aw.t;if(!save.breeds.includes('champion')){save.breeds.push('champion');}save.breed='champion';persist();showChampWin(Math.min(3,Math.max(1,aw.rank||1)));}
  }catch(x){}}
@@ -2193,14 +2209,24 @@ function drawEvGhosts(cy){
 }
 
 PANELS.online=function(){
- const tabs='<div class="tabs"><button class="gb sm'+(onlineTab==='rank'?' act':'')+'" data-act="otab" data-arg="rank">🏆 랭킹</button><button class="gb sm'+(onlineTab==='friend'?' act':'')+'" data-act="otab" data-arg="friend">👫 친구</button><button class="gb sm'+(onlineTab==='vs'?' act':'')+'" data-act="otab" data-arg="vs">⚔️ 대결</button></div>';
+ const tabs='<div class="tabs"><button class="gb sm'+(onlineTab==='rank'?' act':'')+'" data-act="otab" data-arg="rank">🏆 시즌'+SEASON.n+'</button><button class="gb sm'+(onlineTab==='season'?' act':'')+'" data-act="otab" data-arg="season">📜 기록</button><button class="gb sm'+(onlineTab==='friend'?' act':'')+'" data-act="otab" data-arg="friend">👫 친구</button><button class="gb sm'+(onlineTab==='vs'?' act':'')+'" data-act="otab" data-arg="vs">⚔️ 대결</button></div>';
  const off=!ROOM?(FB?'<div class="note">서버에 연결하는 중이에요…</div>':'<div class="note">온라인에 연결되지 않았어요. GitHub에 올렸다면 코드 맨 위 FIREBASE_URL에 Firebase 주소를 넣어 주세요.</div>'):'';
  let h='';
  if(onlineTab==='rank'){queueMicrotask(()=>{if(rankCache&&$('rankBox')){$('rankBox').innerHTML=rankCache;fillRankImgs();}});if(Date.now()-rankAt>15000)setTimeout(loadRank,0);
   const live=lobbyPeersList.slice().sort((a,b)=>(Number(b.presence.best)||0)-(Number(a.presence.best)||0));
-  h='<div class="li"><span class="em">🏆</span><div class="tx"><b>내 최고 기록 '+fmt(save.best)+'m</b><small>닉네임: '+esc(save.nick||'이름없는 냥이')+' (프로필에서 변경)</small></div></div>'+
-   '<div class="note">전체 랭킹 (가장 높이 올라간 순)</div><div class="panel" style="padding:calc(var(--u)*2)" id="rankBox"><div class="note">랭킹 불러오는 중…</div></div>'+
-   (live.length?'<div class="note">지금 접속 중 '+live.length+'명</div><div class="panel" style="padding:calc(var(--u)*2)">'+live.map(p=>'<div class="rk"><span class="no">🟢</span><img src="'+headURL(safeB(p.presence.breed),safeO(p.presence.outfit))+'" alt=""><span class="nn">'+pNick(p)+'</span><b>'+fmt(Number(p.presence.best)||0)+'m</b></div>').join('')+'</div>':'');}
+  h='<div class="li"><span class="em">🏆</span><div class="tx"><b>시즌'+SEASON.n+' 내 기록 '+fmt(curSB())+'m</b><small>역대 최고 '+fmt(save.best)+'m · '+esc(save.nick||'이름없는 냥이')+(myTitle()?' · 🎖️ '+esc(myTitle()):'')+'</small></div></div>'+
+   '<div class="note">🏆 시즌'+SEASON.n+' 랭킹 (시즌이 끝나면 1~3등은 칭호를 받아요)</div><div class="panel" style="padding:calc(var(--u)*2)" id="rankBox"><div class="note">랭킹 불러오는 중…</div></div>'+
+   (live.length?'<div class="note">지금 접속 중 '+live.length+'명</div><div class="panel" style="padding:calc(var(--u)*2)">'+live.map(p=>'<div class="rk"><span class="no">🟢</span><img src="'+headURL(safeB(p.presence.breed),safeO(p.presence.outfit))+'" alt=""><span class="nn">'+pNick(p)+ttlHTML(p.presence.ti)+'</span><b>'+fmt(Number(p.presence.best)||0)+'m</b></div>').join('')+'</div>':'');}
+ else if(onlineTab==='season'){if(!seasonsCache&&FB){seasonsCache='loading';fbReq('seasons','GET').then(v=>{seasonsCache=v||{};if(curPanel==='online'&&onlineTab==='season')rerender();}).catch(()=>{seasonsCache=null;});titlesSync(true);}
+  const T=save.titles||{},ids=Object.keys(T).sort((a,b)=>(T[b].s-T[a].s)||(T[a].r-T[b].r));
+  h='<div class="note">🎖️ 내 칭호 (장착하면 랭킹에 이름 밑으로 보여요)</div>'+
+   (ids.length?ids.map(id=>{const on=save.title===id;return '<div class="li"'+(on?' style="background:#ffe08a"':'')+'><span class="em">'+['🥇','🥈','🥉'][Math.min(3,Math.max(1,T[id].r))-1]+'</span><div class="tx"><b>'+esc(titleText(T[id]))+'</b><small>'+(on?'장착 중':'눌러서 장착')+'</small></div>'+(on?'<button class="gb sm cream" data-act="ttlOff">해제</button>':'<button class="gb sm green" data-act="ttlOn" data-arg="'+esc(id)+'">장착</button>')+'</div>';}).join(''):'<div class="note">아직 칭호가 없어요. 시즌이 끝날 때 1~3등이 「시즌N 🥇 1위 0000m」 칭호를 받아요!</div>')+
+   '<div class="note">📜 지난 시즌 기록 · 지금은 시즌'+SEASON.n+' 진행 중</div>';
+  if(seasonsCache==='loading'||(!seasonsCache&&FB))h+='<div class="note">불러오는 중…</div>';
+  else{const L=Object.values(seasonsCache||{}).filter(x=>x&&x.n).sort((a,b)=>b.n-a.n);
+   h+=L.length?L.map(x=>{const top=Array.isArray(x.top)?x.top:Object.values(x.top||{});const d=x.end?new Date(x.end):null;
+    return '<div class="panel" style="padding:calc(var(--u)*2);margin-bottom:calc(var(--u)*3)"><div class="note" style="margin:0 0 4px"><b>🏁 시즌'+x.n+'</b>'+(d?' · '+(d.getMonth()+1)+'/'+d.getDate()+' 종료':'')+' · '+(Number(x.cnt)||top.length)+'명 참가</div>'+
+     top.slice(0,10).map((p,i)=>{const me=p.k===rankUID()||p.k===UID;return '<div class="rk'+(me?' me':'')+'"><span class="no">'+(i<3?['🥇','🥈','🥉'][i]:i+1)+'</span><img src="'+headURL(safeB(p.breed),safeO(p.outfit))+'" alt=""><span class="nn">'+esc(String(p.nick||'냥이').slice(0,10))+(me?' (나)':'')+'</span><b>'+fmt(Number(p.best)||0)+'m</b></div>';}).join('')+'</div>';}).join(''):'<div class="note">아직 끝난 시즌이 없어요.</div>';}}
  else if(onlineTab==='friend'){
   const online=new Set(lobbyPeersList.map(p=>p.presence.fc));
   const fr=save.friends.slice().sort((a,b)=>(online.has(b.code)-online.has(a.code))||((b.best||0)-(a.best||0)));
@@ -2234,7 +2260,9 @@ function addFriend(code){code=String(code||'').toUpperCase().replace(/[^A-Z0-9]/
  const p=lobbyPeersList.find(x=>x.presence.fc===code);
  save.friends.push({code,nick:p?String(p.presence.nick||'친구').slice(0,10):'친구',best:p?Math.floor(Number(p.presence.best)||0):0});persist();sfx('buy');toast('친구를 추가했어요!');rerender();}
 Object.assign(ACT,{
- otab:a=>{onlineTab=a;sfx('click');rerender();},
+ ttlOn:id=>{if(!save.titles||!save.titles[id])return;save.title=id;persist();sfx('buy');toast('🎖️ 칭호 장착!');rankCache='';submitScore();lobbyUpdate();rerender();},
+ ttlOff:()=>{save.title='';persist();sfx('click');rankCache='';submitScore();lobbyUpdate();rerender();},
+ otab:a=>{onlineTab=a;if(a==='season')seasonsCache=null;sfx('click');rerender();},
  fadd:()=>addFriend($('fcIn')&&$('fcIn').value),fadd2:a=>addFriend(a),
  fdel:a=>{save.friends=save.friends.filter(f=>f.code!==a);persist();rerender();},
  finv:async a=>{const room='fr-'+mkCode(6).toLowerCase();lobbyUpdate({inv:{to:a,room,t:Date.now()}});await joinMatch(room,'friend','');toast('대결 신청을 보냈어요!');},
@@ -2332,6 +2360,7 @@ PANELS.admin=function(){if(!isAdmin())return['관리자','<div class="note">관�
  '<div class="li"><span class="em">📢</span><div class="tx"><input class="inp" id="evBanIn" placeholder="이벤트 안내 문구" value="'+esc(evBanner||'')+'"></div><button class="gb sm" data-act="evBan">표시</button></div>'+
  '<div class="note">🏆 챔피언 캣 지급 (레이싱 1·2·3등). 접속자에서 골라 등수 버튼을 누르세요.</div><div class="panel" style="padding:calc(var(--u)*2)" id="champBox"><div class="note">접속자 불러오는 중…</div></div>'+
  '<div class="li" style="background:#1a2a4a;color:#fff"><span class="em">🙋</span><div class="tx"><b>내 기록 올리기</b><small style="color:#bcd">지금 로그인한 '+esc(session&&session.id||'?')+' 계정</small><input class="inp" id="myVal" placeholder="올릴 기록(m)" inputmode="numeric" style="margin-top:4px"></div><button class="gb sm green" data-act="setMyBest">올리기</button></div>'+
+ '<div class="note">🏁 시즌 관리 · 지금 시즌'+SEASON.n+'</div><div class="li"><span class="em">🏁</span><div class="tx"><b>시즌'+SEASON.n+' 끝내고 시즌'+(SEASON.n+1)+' 시작</b><small>1~10등 기록 저장, 1~3등 칭호 지급, 랭킹 초기화</small></div><button class="gb sm pink" data-act="seasonEnd">'+(seasonArm?'정말 종료!':'종료')+'</button></div>'+
  '<div class="note">🔒 게임 잠그기 (관리자 빼고 아무도 못 해요)</div><div class="li"><span class="em">🔒</span><div class="tx"><input class="inp" id="lockMsg" placeholder="잠금 안내 문구 (비워도 됨)"></div><button class="gb sm pink" data-act="lockOn">잠그기</button><button class="gb sm green" data-act="lockOff">풀기</button></div>'+
  '<div class="note">🔍 플레이어 찾기 (랭킹에서 사라졌을 때)</div><div class="li"><span class="em">🔍</span><div class="tx"><input class="inp" id="fdIn" placeholder="아이디 또는 닉네임 일부"></div><button class="gb sm blue" data-act="findP">찾기</button></div><div class="panel" style="padding:calc(var(--u)*2)" id="findBox"><div class="note">아이디나 닉네임을 넣고 찾기를 누르세요</div></div>'+
  '<div class="note">📊 기록 수정</div><div class="li"><span class="em">📊</span><div class="tx"><input class="inp" id="sbId" placeholder="아이디 또는 닉네임" style="margin-bottom:4px"><input class="inp" id="sbVal" placeholder="기록(m)" inputmode="numeric"></div><button class="gb sm" data-act="setBest">변경</button></div>'+
@@ -2357,6 +2386,17 @@ Object.assign(ACT,{
    if(U)h+='<div class="note">✅ 로그인 계정 '+esc(normId(q))+' 있음 · 저장된 기록 '+fmt(Number(U.save&&U.save.best)||0)+'m · 닉네임 '+esc(String(U.save&&U.save.nick||''))+'</div>';
    box.innerHTML=h||'<div class="note">랭킹에 없어요. 📊 기록 수정에 이 아이디/닉네임을 넣으면 랭킹에 새로 만들어져요.</div>';}catch(e){box.innerHTML='<div class="note">불러오지 못했어요</div>';}},
  unpin:k=>{if(!isAdmin()||!k)return;fbReq('rankPin/'+fbKey(k),'DELETE').then(()=>{toast('고정을 풀었어요');rankCache='';ACT.findP();}).catch(()=>toast('실패'));},
+ seasonEnd:async()=>{if(!isAdmin())return;if(!seasonArm){seasonArm=true;toast('한 번 더 누르면 시즌'+SEASON.n+'이 끝나요');loadAdmin();setTimeout(()=>{seasonArm=false;},6000);return;}seasonArm=false;
+  try{toast('시즌 정리 중…');await seasonSync();const N=SEASON.n;const[rk,B,P]=await Promise.all([fbReq('ranking','GET'),fbReq('banned','GET'),fbReq('rankPin','GET')]);
+   const M={};for(const k in rk||{}){const v=rk[k];if(!v||typeof v!=='object'||(B||{})[k]||!inSeason(v)||isBannedName(k)||isBannedName(v.nick))continue;M[k]={k,nick:String(v.nick||'냥이').slice(0,10),best:Math.min(99999,Math.max(0,Math.floor(Number(v.best)||0))),breed:v.breed||'cheese',outfit:v.outfit||'none'};}
+   for(const k in P||{}){const p=P[k];if(!p||typeof p!=='object'||((Number(p.sn)||1)!==N))continue;const b=Math.max(0,Math.floor(Number(p.best)||0));if(!M[k]||M[k].best<b)M[k]={k,nick:String(p.nick||'냥이').slice(0,10),best:b,breed:p.breed||'cheese',outfit:p.outfit||'none'};}
+   const seen={},L=Object.values(M).sort((a,b)=>b.best-a.best).filter(x=>{const nk=x.nick.trim().toLowerCase();if(seen[nk])return false;seen[nk]=1;return x.best>0;});
+   const sv=await fbReq('clock/'+fbKey(evId()),'PUT',{'.sv':'timestamp'}).catch(()=>Date.now());
+   await fbReq('seasons/s'+N,'PUT',{n:N,start:SEASON.start||0,end:sv,cnt:L.length,top:L.slice(0,10)});
+   for(let i=0;i<Math.min(3,L.length);i++)await fbReq('titles/'+fbKey(L[i].k)+'/s'+N,'PUT',{s:N,r:i+1,m:L[i].best,nick:L[i].nick,t:sv});
+   await fbReq('ranking','DELETE');await fbReq('rankPin','DELETE');await fbReq('bestOverride','DELETE');
+   await fbReq('season','PUT',{n:N+1,start:{'.sv':'timestamp'}});await seasonSync();
+   toast('✅ 시즌'+N+' 종료! 1등 '+(L[0]?L[0].nick+' '+fmt(L[0].best)+'m':'없음')+' · 시즌'+(N+1)+' 시작');loadAdmin();}catch(e){toast('실패: 다시 눌러 주세요');}},
  lockOn:()=>{if(!isAdmin())return;const m=($('lockMsg')&&$('lockMsg').value||'').slice(0,60);fbReq('gameLock','PUT',{on:true,msg:m,t:Date.now()}).then(()=>toast('🔒 게임을 잠갔어요 (3초 안에 적용)')).catch(()=>toast('실패'));},
  lockOff:()=>{if(!isAdmin())return;fbReq('gameLock','DELETE').then(()=>toast('🔓 잠금을 풀었어요')).catch(()=>toast('실패'));},
  evStop:()=>{if(!isAdmin())return;fbReq('liveEvent','DELETE').then(()=>toast('⏹ 이벤트 종료')).catch(()=>{});},
@@ -2367,7 +2407,7 @@ Object.assign(ACT,{
   try{const rk=await fbReq('ranking','GET')||{};const keys=Object.keys(rk).filter(k=>k==='u_'+fbKey(id)||String((rk[k]||{}).nick||'').trim().toLowerCase()===raw.toLowerCase());
    const u=await fbReq('users/'+fbKey(id),'GET').catch(()=>null);if(u&&!keys.includes('u_'+fbKey(id)))keys.push('u_'+fbKey(id));
    if(!keys.length)keys.push('u_'+fbKey(id));const t=Date.now();
-   for(const k of keys){const old=rk[k]||{};await fbReq('ranking/'+fbKey(k),'PUT',{nick:old.nick||(u&&u.save&&u.save.nick)||raw,breed:old.breed||'cheese',outfit:old.outfit||'none',best:v,t});await fbReq('banned/'+fbKey(k),'DELETE').catch(()=>{});await fbReq('rankPin/'+fbKey(k),'PUT',{nick:old.nick||(u&&u.save&&u.save.nick)||raw,best:v,breed:old.breed||'cheese',outfit:old.outfit||'none',t});await fbReq('bestOverride/'+fbKey(k),'PUT',{best:v,t});}
+   for(const k of keys){const old=rk[k]||{};await fbReq('ranking/'+fbKey(k),'PUT',{nick:old.nick||(u&&u.save&&u.save.nick)||raw,breed:old.breed||'cheese',outfit:old.outfit||'none',best:v,sn:SEASON.n,ti:old.ti||'',t});await fbReq('banned/'+fbKey(k),'DELETE').catch(()=>{});await fbReq('rankPin/'+fbKey(k),'PUT',{sn:SEASON.n,nick:old.nick||(u&&u.save&&u.save.nick)||raw,best:v,breed:old.breed||'cheese',outfit:old.outfit||'none',t});await fbReq('bestOverride/'+fbKey(k),'PUT',{best:v,sn:SEASON.n,t});}
    if(u&&u.save){await fbReq('users/'+fbKey(id)+'/save/best','PUT',v);await fbReq('users/'+fbKey(id)+'/save/_t','PUT',t);}
    rankCache='';toast('✅ '+raw+' 기록을 '+fmt(v)+'m로 고정했어요 ('+keys.length+'곳)');loadAdmin();}catch(e){toast('실패');}},
  delTop:async()=>{if(!isAdmin())return;if(!confirm('지금 랭킹 1등을 삭제할까요?'))return;try{const rk=await fbReq('ranking','GET')||{};let top=null;for(const k in rk){const v=rk[k]||{};const bb=Math.max(0,Math.floor(Number(v.best)||0));if(!top||bb>top.bb)top={k,bb,nick:v.nick||'?'};}if(!top){toast('랭킹이 비어 있어요');return;}await fbReq('ranking/'+fbKey(top.k),'DELETE');toast('🗑️ 1등 '+top.nick+' ('+top.bb+'m) 삭제');loadAdmin();}catch(e){toast('실패');}},
@@ -2671,7 +2711,7 @@ window.addEventListener('keydown',e=>{const k=(e.key||'').toLowerCase(),mod=e.me
 /* 개발자 도구 자동 감지 제거 (오탐 많음) */
 let verShown=false;async function verCheck(){if(verShown||location.protocol==='file:')return;try{const t=await fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(r=>r.text());const m=t.match(/APP_VER='([^']+)'/);if(m&&m[1]!==APP_VER){verShown=true;const d=document.createElement('button');d.textContent='🔄 새 버전이 나왔어요! 눌러서 새로고침';d.style.cssText='position:absolute;left:50%;bottom:calc(var(--u)*80);transform:translateX(-50%);z-index:60;background:#ffcc22;border:var(--o) solid #2a1626;border-radius:calc(var(--u)*4);padding:calc(var(--u)*3) calc(var(--u)*5);font-family:inherit;font-size:calc(var(--u)*7);box-shadow:0 var(--o) 0 #2a1626;white-space:nowrap';d.onclick=()=>{location.replace(location.pathname+'?v='+Date.now());};stage.appendChild(d);}}catch(e){}}
 setTimeout(verCheck,8000);setInterval(()=>{if(['home','over'].includes(state))verCheck();},60000);
-initOnline().then(accInit).then(()=>{checkTop();setInterval(checkTop,15000);checkBanned();setInterval(checkBanned,30000);svSync().then(()=>{liveTick();setInterval(liveTick,1500);});evTick();setInterval(evTick,4000);setInterval(svSync,60000);}).catch(()=>{});
+initOnline().then(accInit).then(()=>seasonSync()).then(()=>{titlesSync(true);checkTop();setInterval(checkTop,15000);checkBanned();setInterval(checkBanned,30000);svSync().then(()=>{liveTick();setInterval(liveTick,1500);});evTick();setInterval(evTick,4000);setInterval(svSync,60000);}).catch(()=>{});
 requestAnimationFrame(frame);
 })();
 </script>
