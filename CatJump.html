@@ -310,7 +310,7 @@ var FIREBASE_URL='https://cat-jump-3afbb-default-rtdb.firebaseio.com';
 <script>
 (function(){
 'use strict';
-const APP_VER='2026-10-22-2150';
+const APP_VER='2026-10-22-2200';
 const W=180;let H=320;
 const LX=16,RX=164,MX=90,FPX=24,CH=132,SEG=160,GRAV=820,CLING=10,GROUND_Y=-13;const CAT_SC=.8;
 let S=2;const sn=v=>Math.round(v*S)/S;
@@ -2644,7 +2644,10 @@ function pkCard(){const o=ownSkill('pumpkin');return '<button class="card'+(o?' 
 function slotBar(){const sl=save.slots||[null,null];return '<div class="row">'+[0,1].map(i=>{const id=sl[i],sk=id&&SKILLS[id];return '<div class="card" style="flex:1;padding:calc(var(--u)*3)"><div class="big-n">'+(i?'R':'E')+'</div><div style="font-size:calc(var(--u)*16)">'+(sk?sk.e:'➖')+'</div><div class="n">'+(sk?sk.n:'빈 칸')+'</div>'+(sk?'<button class="gb sm cream" data-act="unslot" data-arg="'+i+'">빼기</button>':'')+'</div>';}).join('')+'</div>';}
 function skillsHTML(){return Object.keys(SKILLS).map(id=>{const sk=SKILLS[id],o=ownSkill(id),sl=save.slots||[null,null];
  return '<div class="li'+(o?'':' locked')+'"><span class="em">'+sk.e+'</span><div class="tx"><b>'+sk.n+(o?'':' 🔒')+'</b><small>'+sk.d+' · 쿨타임 '+skillCd(id)+'초'+(o?'':' · 얻는 법: '+(typeof sk.how==='function'?sk.how():sk.how))+'</small></div>'+
-  (o?'<button class="gb sm'+(sl[0]===id?' green':' cream')+'" data-act="slot" data-arg="'+id+':0">E</button><button class="gb sm'+(sl[1]===id?' green':' cream')+'" data-act="slot" data-arg="'+id+':1">R</button>':'')+'</div>';}).join('')+awakenHTML();}
+  (o?'<button class="gb sm'+(sl[0]===id?' green':' cream')+'" data-act="slot" data-arg="'+id+':0">E</button><button class="gb sm'+(sl[1]===id?' green':' cream')+'" data-act="slot" data-arg="'+id+':1">R</button>':'')+'</div>'+awWrap(id);}).join('');}
+function awWrap(id){const h=id==='blast'?nakwhaHTML():id==='rocket'?rocketAwHTML():'';if(!h)return'';const sk=SKILLS[id],aw=id==='blast'?['🌸','낙화참',!!save.blastAwake]:['🔥','대포 각성',!!save.rocketAwake];
+ return '<div style="margin:calc(var(--u)*-1) 0 calc(var(--u)*4) calc(var(--u)*6);padding:calc(var(--u)*2.5);border:var(--o) solid #2a1626;border-top:none;border-radius:0 0 calc(var(--u)*4) calc(var(--u)*4);background:'+(aw[2]?'linear-gradient(180deg,#fff0d0,#ffe08a)':'linear-gradient(180deg,#f3e6ff,#e6d0ff)')+'">'+
+  '<div style="font-family:\'Black Han Sans\',Jua,sans-serif;font-size:calc(var(--u)*9);text-align:center;margin-bottom:calc(var(--u)*2);color:#2a1626">⬇ '+sk.e+' '+sk.n+' 각성 → '+aw[0]+' '+aw[1]+(aw[2]?' ✅':'')+'</div>'+h+'</div>';}
 function skillCd(id){if(id==='blast'&&save.blastAwake)return 12;return id==='rocket'&&save.rocketAwake?25:SKILLS[id].cd;}
 function syncSkills(){if(!save.p1){if(save.coins>=9999)save.coins=0;if(save.gems>=9999)save.gems=0;save.p1=1;persist();}if(save.best>=100000){save.best=22000;persist();}if((save.best>=2500||save.skillBlast)&&!ownSkill('blast')){save.skillBlast=true;giveSkill('blast');}if(!save.slots)save.slots=[null,null];let ch=false;for(const id of save.skills||[]){if(!save.slots.includes(id)){const e=save.slots.indexOf(null);if(e>=0){save.slots[e]=id;ch=true;}}}if(ch)persist();checkRocket();}
 function nakwhaHTML(){if(!ownSkill('blast'))return'';const sk='<div class="li" style="background:#2a1a2a;color:#fff"><span class="em">🎬</span><div class="tx"><b>낙화참 컷씬 건너뛰기</b><small style="color:#e8c8e8">'+(save.skipCut?'켜짐: 바로 베고 터져요':'꺼짐: 웅장한 컷씬이 나와요')+'</small></div><button class="gb sm '+(save.skipCut?'green':'cream')+'" data-act="skipCut">'+(save.skipCut?'켜짐':'꺼짐')+'</button></div>';
