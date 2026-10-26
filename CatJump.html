@@ -323,7 +323,7 @@ var FIREBASE_URL='https://cat-jump-3afbb-default-rtdb.firebaseio.com';
 <script>
 (function(){
 'use strict';
-const APP_VER='2026-10-26-0900';
+const APP_VER='2026-10-26-0910';
 const W=180;let H=320;
 const LX=16,RX=164,MX=90,FPX=24,CH=132,SEG=160,GRAV=820,CLING=10,GROUND_Y=-13;const CAT_SC=.8;
 let S=2;const sn=v=>Math.round(v*S)/S;
@@ -1849,7 +1849,7 @@ const PANELS={trade:()=>PANELS_EXTRA_TRADE?PANELS_EXTRA_TRADE():['🤝 거래','
  starter(){return['스타터 패키지',save.starter?'<div class="note" style="text-align:center">이미 받았어요. 즐거운 점프 되세요!</div>':
   '<div class="li"><span class="em">🌱</span><div class="tx"><b>새싹 냥이 선물</b><small>처음 한 번만 받을 수 있어요</small></div></div><div class="li"><span class="em">🎁</span><div class="tx"><b>'+ICH('c')+'500 · '+ICH('g')+'5 · 시작 보호막 3개</b></div></div><button class="gb green big" data-act="starter">받기</button>'];},
  settings(){return['설정',(isAdmin()?'<div class="li" style="background:#2a1a4a;color:#fff"><span class="em">🛡️</span><div class="tx"><b>관리자 메뉴</b><small style="color:#d8c8ff">플레이어 정지·해제</small></div><button class="gb sm purple" data-open="admin">열기</button></div>':'')+
-  '<a class="li" href="./" style="text-decoration:none;color:inherit;background:linear-gradient(90deg,#ffe0f0,#e0f4ff)"><span class="em">🎮</span><div class="tx"><b>지후 아케이드 (게임 허브)</b><small>다른 게임도 해 보세요 · 바이러스 시뮬레이터</small></div><span class="gb sm pink">가기</span></a>'+
+  '<a class="li" href="https://jihoo-rpg.github.io/Blip/hub/" style="text-decoration:none;color:inherit;background:linear-gradient(90deg,#ffe0f0,#e0f4ff)"><span class="em">🎮</span><div class="tx"><b>blip 게임 허브</b><small>다른 게임도 해 보세요 · 바이러스 시뮬레이터</small></div><span class="gb sm pink">가기</span></a>'+
  '<div class="li"><span class="em">🔊</span><div class="tx"><b>효과음</b></div><button class="gb sm '+(save.mute?'cream':'green')+'" data-act="tog" data-arg="mute">'+(save.mute?'꺼짐':'켜짐')+'</button></div>'+
   '<div class="li"><span class="em">🎵</span><div class="tx"><b>배경음악</b><small>구간마다 다른 음악</small></div><button class="gb sm '+(save.music!==false?'green':'cream')+'" data-act="tog" data-arg="music">'+(save.music!==false?'켜짐':'꺼짐')+'</button></div>'+
   '<div class="li"><span class="em">📳</span><div class="tx"><b>진동</b><small>지원하는 휴대폰에서만</small></div><button class="gb sm '+(save.vib?'green':'cream')+'" data-act="tog" data-arg="vib">'+(save.vib?'켜짐':'꺼짐')+'</button></div>'+
